@@ -109,6 +109,7 @@ class CarControllerParams:
 
 class CANBUS:
   pt = 0
+  main = 1
   cam = 2
 
 
@@ -243,7 +244,7 @@ class CAR(Platforms):
       VWCarDocs("Volkswagen Caddy 2019"),
       VWCarDocs("Volkswagen Caddy Maxi 2019"),
     ],
-    VolkswagenCarSpecs(mass=1613, wheelbase=2.6, minSteerSpeed=21 * CV.KPH_TO_MS),
+    VolkswagenCarSpecs(mass=1613, wheelbase=2.6),
     chassis_codes={"2K"},
     wmis={WMI.VOLKSWAGEN_COMMERCIAL_BUS_VAN},
   )
