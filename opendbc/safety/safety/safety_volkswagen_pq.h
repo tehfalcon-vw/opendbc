@@ -102,19 +102,17 @@ static void volkswagen_pq_rx_hook(const CANPacket_t *to_push) {
       update_sample(&torque_driver, torque_driver_new);
     }
 
+    if (addr == MSG_MOTOR_5) {
+      // ACC main switch on is a prerequisite to enter controls, exit controls immediately on main switch off
+      // Signal: Motor_5.GRA_Hauptschalter
+      acc_main_on = GET_BIT(to_push, 50U);
+    }
+    
     if (volkswagen_longitudinal) {
-      if (addr == MSG_MOTOR_5) {
-        // ACC main switch on is a prerequisite to enter controls, exit controls immediately on main switch off
-        // Signal: Motor_5.GRA_Hauptschalter
-        acc_main_on = GET_BIT(to_push, 50U);
-        if (!acc_main_on) {
-          controls_allowed = false;
-          mads_button_press = MADS_BUTTON_NOT_PRESSED;
-        } else {
-          mads_button_press = MADS_BUTTON_PRESSED;
-        }
+      if (!acc_main_on) {
+        controls_allowed = false;
       }
-
+      
       if (addr == MSG_GRA_NEU) {
         // If ACC main switch is on, enter controls on falling edge of Set or Resume
         // Signal: GRA_Neu.GRA_Neu_Setzen
