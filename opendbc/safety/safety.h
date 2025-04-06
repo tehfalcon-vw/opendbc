@@ -27,6 +27,7 @@
 // CAN-FD only safety modes
 #ifdef CANFD
 #include "safety/safety_hyundai_canfd.h"
+#include "safety/safety_volkswagen_meb.h"
 #endif
 
 // from cereal.car.CarParams.SafetyModel
@@ -104,6 +105,8 @@ uint32_t heartbeat_engaged_mismatches = 0;  // count of mismatches between heart
 uint32_t ts_angle_last = 0;
 int desired_angle_last = 0;
 struct sample_t angle_meas;         // last 6 steer angles/curvatures
+
+struct sample_t roll; // last 6 roll values
 
 
 int alternative_experience = 0;
@@ -426,6 +429,7 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
     {SAFETY_RIVIAN, &rivian_hooks},
 #ifdef CANFD
     {SAFETY_HYUNDAI_CANFD, &hyundai_canfd_hooks},
+    {SAFETY_VOLKSWAGEN_MEB, &volkswagen_meb_hooks},
 #endif
 #ifdef ALLOW_DEBUG
     {SAFETY_TESLA, &tesla_hooks},
@@ -462,6 +466,7 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
   reset_sample(&torque_meas);
   reset_sample(&torque_driver);
   reset_sample(&angle_meas);
+  reset_sample(&roll);
 
   controls_allowed = false;
   relay_malfunction_reset();
@@ -799,13 +804,21 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
       // Limit to average banked road since safety doesn't have the roll
       static const float EARTH_G = 9.81;
       static const float AVERAGE_ROAD_ROLL = 0.06;  // ~3.4 degrees, 6% superelevation
-      static const float MAX_LATERAL_ACCEL = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL);  // ~2.4 m/s^2
+      
+      float max_lat_accel;
+      if (limits.use_roll_data) { // dynamic roll from OP via CAN
+	      float max_lat_accel_min = ISO_LATERAL_ACCEL - (roll.min * EARTH_G);
+	      float max_lat_accel_max = ISO_LATERAL_ACCEL - (roll.max * EARTH_G);
+	      max_lat_accel = MAX(max_lat_accel_min, max_lat_accel_max); // allows a little bit of tolerance
+      } else { // OP upstream default, static limit without real roll data
+        max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
+      }
 
       // Allow small tolerance by using minimum speed and rounding curvature up
       const float speed_lower = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
       const float speed_upper = MAX(vehicle_speed.max / VEHICLE_SPEED_FACTOR, 1.0);
-      const int max_curvature_upper = (MAX_LATERAL_ACCEL / (speed_lower * speed_lower) * limits.angle_deg_to_can) + 1.;
-      const int max_curvature_lower = (MAX_LATERAL_ACCEL / (speed_upper * speed_upper) * limits.angle_deg_to_can) - 1.;
+      const int max_curvature_upper = (max_lat_accel / (speed_lower * speed_lower) * limits.angle_deg_to_can) + 1.;
+      const int max_curvature_lower = (max_lat_accel / (speed_upper * speed_upper) * limits.angle_deg_to_can) - 1.;
 
       // ensure that the curvature error doesn't try to enforce above this limit
       if (desired_angle_last > 0) {
