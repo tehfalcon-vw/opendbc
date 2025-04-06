@@ -299,7 +299,8 @@ class CAR(Platforms):
       VWCarDocs("Volkswagen Caddy 2019"),
       VWCarDocs("Volkswagen Caddy Maxi 2019"),
     ],
-    VolkswagenCarSpecs(mass=1613, wheelbase=2.6),
+    #VolkswagenCarSpecs(mass=1613, wheelbase=2.6),
+    VolkswagenCarSpecs(mass=1550, wheelbase=2.682, steerRatio=15.5, centerToFrontRatio=0.505, tireStiffnessFactor=1.1),
     chassis_codes={"2K"},
     wmis={WMI.VOLKSWAGEN_COMMERCIAL_BUS_VAN},
   )
