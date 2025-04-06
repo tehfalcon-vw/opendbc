@@ -100,6 +100,7 @@ typedef struct {
   const bool angle_is_curvature;         // if true, we can apply max lateral acceleration limits
   const bool enforce_angle_error;        // enables max_angle_error check
   const bool inactive_angle_is_zero;     // if false, enforces angle near meas when disabled (default)
+  const bool use_roll_data;              // if true: use roll data from OP, false: use static roll (upstream logic)
 } AngleSteeringLimits;
 
 typedef struct {
@@ -239,6 +240,7 @@ extern uint32_t heartbeat_engaged_mismatches;  // count of mismatches between he
 extern uint32_t ts_angle_last;
 extern int desired_angle_last;
 extern struct sample_t angle_meas;         // last 6 steer angles/curvatures
+extern struct sample_t roll;               // last 6 roll values
 
 // This can be set with a USB command
 // It enables features that allow alternative experiences, like not disengaging on gas press
@@ -296,4 +298,5 @@ extern const safety_hooks tesla_hooks;
 extern const safety_hooks toyota_hooks;
 extern const safety_hooks volkswagen_mqb_hooks;
 extern const safety_hooks volkswagen_pq_hooks;
+extern const safety_hooks volkswagen_meb_hooks;
 extern const safety_hooks rivian_hooks;
