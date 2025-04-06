@@ -109,6 +109,9 @@ static void volkswagen_pq_rx_hook(const CANPacket_t *to_push) {
         acc_main_on = GET_BIT(to_push, 50U);
         if (!acc_main_on) {
           controls_allowed = false;
+          mads_button_press = MADS_BUTTON_NOT_PRESSED;
+        } else {
+          mads_button_press = MADS_BUTTON_PRESSED;
         }
       }
 
