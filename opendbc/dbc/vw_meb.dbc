@@ -36,6 +36,9 @@ BS_:
 BU_: BAP_Tester BedienDisp_vo BedienSG_hi CGS DDA Gateway Gateway_PAG GurtMikrofon OTA_FC ZR_High ZR_LIMU ZR_MIB_TOP_ab_Gen3 ZR_Standard
 
 
+BO_ 84569818 Panda_Data_01: 32 Vector__XXX
+ SG_ Roll : 0|16@1+ (0.0001,-3.1416) [0|6.2832] "rad" Vector__XXX
+
 BO_ 64 Airbag_01: 8 Gateway
  SG_ Airbag_01_CRC : 0|8@1+ (1,0) [0|255] "" AWC,BMC_MLBevo,BMS_NV,DCDC_800V_PAG,DCDC_HV,DCDC_HV_02,DCDC_IHEV,FCU_MLBevo_FCEV,Ladegeraet_2,Ladegeraet_Konzern,Sub_Gateway
  SG_ Airbag_01_BZ : 8|4@1+ (1,0) [0|15] "" AWC,BMC_MLBevo,BMS_NV,DCDC_800V_PAG,DCDC_HV,DCDC_HV_02,DCDC_IHEV,FCU_MLBevo_FCEV,Ladegeraet_2,Ladegeraet_Konzern,Sub_Gateway
@@ -652,7 +655,8 @@ BO_ 768 MEB_ACC_01: 48 XXX
 
 BO_ 771 HCA_03: 24 XXX
  SG_ RequestStatus : 12|4@1+ (1,0) [0|15] "" XXX
- SG_ Power : 16|8@1+ (0.4,0) [0.0|100.0] "percent" XXX
+ SG_ Power : 16|7@1+ (1,0) [0|125] "" XXX
+ SG_ Power_Boost : 23|1@1+ (1,0) [0|1] "" XXX
  SG_ Curvature : 24|15@1+ (6.7e-06,0) [0|0.219] "Unit_rad/m" XXX
  SG_ Curvature_VZ : 39|1@1+ (1,0) [0|1] "" XXX
  SG_ Unknown_01 : 53|1@0+ (1,0) [0|1] "" XXX
