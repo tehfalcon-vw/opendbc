@@ -157,11 +157,6 @@ class CarController(CarControllerBase):
           ea_simulated_torque = CS.out.steeringTorque
         can_sends.append(self.CCS.create_eps_update(self.packer_pt, CANBUS.cam, CS.eps_stock_values, ea_simulated_torque))
 
-    # **** Indicator Controls ******************************************** #
-
-    if self.CP.flags & VolkswagenFlags.MEB and self.frame % 8 == 0 and self.frame > 5000:
-      can_sends.append(self.CCS.create_turn_indicator(self.packer_pt, CANBUS.pt, CS.sal_stock_values, True, False))
-
     # **** Acceleration Controls ******************************************** #
 
     if self.CP.openpilotLongitudinalControl:

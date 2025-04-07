@@ -22,32 +22,6 @@ def create_panda_data(packer, bus, roll):
   }
   return packer.make_can_msg("Panda_Data_01", bus, values)
 
-
-def create_turn_indicator(packer, bus, sal_stock_values, left, right):
-  values = {s: sal_stock_values[s] for s in [
-    "Brake_Unknown",
-    "Brake_Light_01",
-    "NEW_SIGNAL_2",
-    "Right_Blinker",
-    "Left_Blinker",
-    "Reverse_Light",
-    "Brake_Light_02",
-    "Right_Blinker_02",
-    "Left_Blinker_02 ",
-    "NEW_SIGNAL_3",
-    "NEW_SIGNAL_4",
-  ]}
-
-  values.update({
-    "COUNTER": (sal_stock_values["COUNTER"] + 1) % 16,
-    "Left_Blinker": left if left == True else sal_stock_values["Left_Blinker"],
-    "Right_Blinker": right if right == True else sal_stock_values["Right_Blinker"],
-    "Left_Blinker_02": left if left == True else sal_stock_values["Left_Blinker_02"],
-    "Right_Blinker_02": right if right == True else sal_stock_values["Right_Blinker_02"],
-  })
-  
-  return packer.make_can_msg("SAL_01", bus, values)
-
   
 def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power, power_boost):
   values = {

@@ -21,7 +21,6 @@
 #define MSG_EA_02            0x1F0   // TX, for EA mitigation
 #define MSG_KLR_01           0x25D   // TX, for capacitive steering wheel
 #define MSG_Panda_Data_01    0x50A6EDA   // internal use, data for panda from OP sensors
-#define MSG_SAL_01           0x12DD54C9  // TX for turn indicators
 
 static uint8_t volkswagen_crc8_lut_8h2f[256]; // Static lookup table for CRC8 poly 0x2F, aka 8H2F/AUTOSAR
 static int volkswagen_steer_power_prev = 0;
@@ -87,8 +86,6 @@ static uint32_t volkswagen_meb_compute_crc(const CANPacket_t *to_push) {
     crc ^= (uint8_t[]){0x9D,0xE8,0x36,0xA1,0xCA,0x3B,0x1D,0x33,0xE0,0xD5,0xBB,0x5F,0xAE,0x3C,0x31,0x9F}[counter];
   } else if (addr == MSG_KLR_01) {
     crc ^= (uint8_t[]){0xDA,0x6B,0x0E,0xB2,0x78,0xBD,0x5A,0x81,0x7B,0xD6,0x41,0x39,0x76,0xB6,0xD7,0x35}[counter];
-  } else if (addr == MSG_SAL_01) {
-    crc ^= (uint8_t[]){0xDE,0xA9,0x83,0x0B,0x0C,0x64,0x79,0x44,0x0F,0xF6,0xC6,0xC7,0x05,0x45,0xB7,0x59}[counter];
   }
   else {
     // Undefined CAN message, CRC check expected to fail
@@ -103,13 +100,11 @@ static safety_config volkswagen_meb_init(uint16_t param) {
   static const CanMsg VOLKSWAGEN_MEB_STOCK_TX_MSGS[] = {{MSG_HCA_03, 0, 24, true}, {MSG_GRA_ACC_01, 0, 8, false},
                                                        {MSG_EA_01, 0, 8, false}, {MSG_EA_02, 0, 8, false},
                                                        {MSG_KLR_01, 0, 8, false}, {MSG_KLR_01, 2, 8, false},
-                                                       {MSG_SAL_01, 0, 8, false},
                                                        {MSG_GRA_ACC_01, 2, 8, false}, {MSG_LDW_02, 0, 8, false}};
   
   static const CanMsg VOLKSWAGEN_MEB_LONG_TX_MSGS[] = {{MSG_MEB_ACC_01, 0, 48, false}, {MSG_ACC_18, 0, 32, false}, {MSG_HCA_03, 0, 24, true},
                                                        {MSG_EA_01, 0, 8, false}, {MSG_EA_02, 0, 8, false},
                                                        {MSG_KLR_01, 0, 8, false}, {MSG_KLR_01, 2, 8, false},
-                                                       {MSG_SAL_01, 0, 8, false},
                                                        {MSG_LDW_02, 0, 8, false}, {MSG_TA_01, 0, 8, false}};
 
   static RxCheck volkswagen_meb_rx_checks[] = {
