@@ -481,9 +481,14 @@ BO_ 496 EA_02: 8 Gateway
  SG_ EA_Unknown : 60|3@0+ (1,0) [0|7] "" XXX
 
 BO_ 517 SAM_01: 8 XXX
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ NEW_SIGNAL_1 : 34|1@0+ (1,0) [0|1] "" XXX
  SG_ Brake_Light : 36|1@0+ (1,0) [0|1] "" XXX
  SG_ Left_Blinker : 37|1@0+ (1,0) [0|1] "" XXX
  SG_ Right_Blinker : 38|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_2 : 42|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_3 : 43|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 518 Parken_01: 24 XXX
  SG_ CHK : 0|8@1+ (1,0) [0|255] "" XXX
@@ -2078,8 +2083,8 @@ BO_ 1716 VIN_01: 8 Gateway_MQB
 BO_ 316495015 MEB_Camera_04: 32 XXX
 
 BO_ 316495049 SAL_01: 8 XXX
- SG_ CRC : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ CNT : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ Brake_Unknown : 18|1@0+ (1,0) [0|1] "" XXX
  SG_ Brake_Light_01 : 20|1@0+ (1,0) [0|1] "" XXX
  SG_ NEW_SIGNAL_2 : 22|1@0+ (1,0) [0|1] "" XXX
