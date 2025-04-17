@@ -8,6 +8,7 @@ from opendbc.car.volkswagen.values import CAR, NetworkLocation, TransmissionType
 class CarInterface(CarInterfaceBase):
   CarState = CarState
   CarController = CarController
+  RadarInterface = RadarInterface
 
   @staticmethod
   def _get_params(ret: structs.CarParams, candidate: CAR, fingerprint, car_fw, experimental_long, docs) -> structs.CarParams:
@@ -50,6 +51,9 @@ class CarInterface(CarInterfaceBase):
       else:
         ret.networkLocation = NetworkLocation.fwdCamera
 
+      if ret.networkLocation == NetworkLocation.gateway:
+        ret.radarUnavailable = False
+
     else:
       # Set global MQB parameters
       ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.volkswagen)]
@@ -77,7 +81,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerActuatorDelay = 0.22
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
     elif ret.flags & VolkswagenFlags.MEB:
-      ret.steerActuatorDelay = 0.26
+      ret.steerActuatorDelay = 0.25
     else:
       ret.steerActuatorDelay = 0.1
       ret.lateralTuning.pid.kpBP = [0.]
@@ -88,8 +92,12 @@ class CarInterface(CarInterfaceBase):
 
     # Global longitudinal tuning defaults, can be overridden per-vehicle
 
+    if ret.flags & VolkswagenFlags.MEB:
+      ret.longitudinalActuatorDelay = 0.25
+      ret.radarDelay = 0.3
+
     ret.experimentalLongitudinalAvailable = ret.networkLocation == NetworkLocation.gateway or docs
-    if experimental_long and not ret.flags & VolkswagenFlags.MEB:
+    if experimental_long:
       # Proof-of-concept, prep for E2E only. No radar points available. Panda ALLOW_DEBUG firmware required.
       ret.openpilotLongitudinalControl = True
       ret.safetyConfigs[0].safetyParam |= VolkswagenSafetyFlags.LONG_CONTROL.value
