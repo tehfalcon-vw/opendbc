@@ -15,13 +15,6 @@ ACC_HUD_ACTIVE   = 3
 ACC_HUD_ENABLED  = 2
 ACC_HUD_DISABLED = 0
 
-
-def create_panda_data(packer, bus, roll):
-  values = {
-    "Roll": roll,
-  }
-  return packer.make_can_msg("Panda_Data_01", bus, values)
-
   
 def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power, power_boost):
   values = {
