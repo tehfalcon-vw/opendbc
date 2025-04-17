@@ -4,7 +4,7 @@ from opendbc.car import Bus, DT_CTRL, apply_driver_steer_torque_limits, apply_st
 from opendbc.car import DT_CTRL, ACCELERATION_DUE_TO_GRAVITY, ISO_LATERAL_ACCEL
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarControllerBase
-from opendbc.car.volkswagen import mqbcan, pqcan, mebcan
+from opendbc.car.volkswagen import mqbcan, pqcan, mebcan, pandacan
 from opendbc.car.volkswagen.values import CANBUS, CarControllerParams, VolkswagenFlags
 
 VisualAlert = structs.CarControl.HUDControl.VisualAlert
@@ -85,6 +85,7 @@ class CarController(CarControllerBase):
     super().__init__(dbc_names, CP, CP_SP)
     self.CCP = CarControllerParams(CP)
     self.CCS = pqcan if CP.flags & VolkswagenFlags.PQ else (mebcan if CP.flags & VolkswagenFlags.MEB else mqbcan)
+    self.PC = pandacan
     self.packer_pt = CANPacker(dbc_names[Bus.pt])
     self.ext_bus = CANBUS.pt if CP.networkLocation == structs.CarParams.NetworkLocation.fwdCamera else CANBUS.cam
     self.aeb_available = not CP.flags & VolkswagenFlags.PQ
@@ -111,7 +112,7 @@ class CarController(CarControllerBase):
     # **** DATA FOR PANDA VIA CAN ************************************************ #
     if self.frame % self.CCP.STEER_STEP == 0:
       if self.CP.flags & VolkswagenFlags.MEB:
-        can_sends.append(self.CCS.create_panda_data(self.packer_pt, CANBUS.pt, CC.rollDEPRECATED))
+        can_sends.append(self.PC.create_panda_data(self.packer_pt, CANBUS.pt, CC.rollDEPRECATED))
 
     # **** Steering Controls ************************************************ #
 
