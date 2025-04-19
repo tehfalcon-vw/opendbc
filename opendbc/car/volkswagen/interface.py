@@ -114,6 +114,6 @@ class CarInterface(CarInterfaceBase):
     if ret.flags & VolkswagenFlags.MEB:
       ret.startAccel = 2.0
       ret.stopAccel = -1.1
-      ret.stoppingDecelRate = 0.2
+      ret.stoppingDecelRate = 0.05
 
     return ret
