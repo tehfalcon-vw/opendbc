@@ -800,23 +800,24 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
     if (limits.angle_is_curvature) {
       // ISO 11270
       static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2
-
-      // Limit to average banked road since safety doesn't have the roll
       static const float EARTH_G = 9.81;
       static const float AVERAGE_ROAD_ROLL = 0.06;  // ~3.4 degrees, 6% superelevation
       
       float max_lat_accel;
       if (limits.use_roll_data) { // dynamic roll from OP via CAN
-	// advantageous roll -> iso limit projection, else set pure iso accel  
-	float roll_right = MIN(roll.min, 0.0);
-    	float roll_left  = MAX(roll.max, 0.0);
+	float roll_comp_left  = MAX(roll.max, 0.0);
+    	float roll_comp_right = MIN(roll.min, 0.0);
 
-    	float max_accel_right = ISO_LATERAL_ACCEL - (roll_right * EARTH_G);
-    	float max_accel_left  = ISO_LATERAL_ACCEL - (roll_left  * EARTH_G);
+    	float limit_left  = ISO_LATERAL_ACCEL + (roll_comp_left  * EARTH_G);
+    	float limit_right = ISO_LATERAL_ACCEL + (-roll_comp_right * EARTH_G);
 
-    	max_lat_accel = (desired_angle_last > 0) ? max_accel_right :
-                    	(desired_angle_last < 0) ? max_accel_left :
-                    	ISO_LATERAL_ACCEL;
+    	if (desired_angle_last > 0) {
+      	  max_lat_accel = limit_right;
+    	} else if (desired_angle_last < 0) {
+      	  max_lat_accel = limit_left;
+    	} else {
+      	  max_lat_accel = ISO_LATERAL_ACCEL;
+    	}
       } else { // OP upstream default, static limit without real roll data
         max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
       }
