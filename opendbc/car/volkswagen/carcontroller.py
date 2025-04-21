@@ -112,7 +112,7 @@ class CarController(CarControllerBase):
     # **** DATA FOR PANDA VIA CAN ************************************************ #
     if self.frame % self.CCP.STEER_STEP == 0:
       if self.CP.flags & VolkswagenFlags.MEB:
-        can_sends.append(self.PC.create_panda_data(self.packer_pt, CANBUS.pt, CC.roll))
+        can_sends.append(self.PC.create_panda_data(self.packer_pt, CANBUS.pt, CC.rollDEPRECATED))
 
     # **** Steering Controls ************************************************ #
 
@@ -127,7 +127,7 @@ class CarController(CarControllerBase):
           hca_enabled = True
           current_curvature = CS.curvature
           actuator_curvature_with_offset = actuators.curvature + (CS.curvature - CC.currentCurvature)
-          apply_curvature, iso_limit_active = apply_vw_meb_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, 0., CC.latActive, CC.roll, self.CCP) # apply ISO 11270 limit lateral acceleration
+          apply_curvature, iso_limit_active = apply_vw_meb_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, 0., CC.latActive, CC.rollDEPRECATED, self.CCP) # apply ISO 11270 limit lateral acceleration
           if CS.out.steeringPressed: # roughly sync curvature when user overrides
             apply_curvature = np.clip(apply_curvature, current_curvature - self.CCP.CURVATURE_ERROR, current_curvature + self.CCP.CURVATURE_ERROR)
           apply_curvature = np.clip(apply_curvature, -self.CCP.ANGLE_LIMITS.STEER_ANGLE_MAX, self.CCP.ANGLE_LIMITS.STEER_ANGLE_MAX)
