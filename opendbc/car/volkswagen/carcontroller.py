@@ -218,7 +218,7 @@ class CarController(CarControllerBase):
     # **** Acceleration Controls ******************************************** #
 
     if self.frame % self.CCP.ACC_CONTROL_STEP == 0 and self.CP.openpilotLongitudinalControl:
-      if CS.acc_type = 1:
+      if CS.acc_type == 1 and self.CP.flags & VolkswagenFlags.PQ:
         gra_enabled = CC.longActive and CS.out.cruiseState.enabled
         set_speed = int(round(CS.out.cruiseState.speed * CV.MS_TO_KPH))
         actuator_speed = int(round(actuators.speed * CV.MS_TO_KPH))
@@ -288,7 +288,7 @@ class CarController(CarControllerBase):
     if hud_control.leadDistanceBars != self.lead_distance_bars_last:
       self.distance_bar_frame = self.frame
     
-    if self.frame % self.CCP.ACC_HUD_STEP == 0 and self.CP.openpilotLongitudinalControl and CS.acc_type != 1:
+    if self.frame % self.CCP.ACC_HUD_STEP == 0 and self.CP.openpilotLongitudinalControl:
       if self.CP.flags & VolkswagenFlags.MEB:
         fcw_alert = True if hud_control.visualAlert == VisualAlert.fcw else False
         show_distance_bars = self.frame - self.distance_bar_frame < 400
