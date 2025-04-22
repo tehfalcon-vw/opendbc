@@ -218,7 +218,7 @@ class CarController(CarControllerBase):
     # **** Acceleration Controls ******************************************** #
 
     if self.frame % self.CCP.ACC_CONTROL_STEP == 0 and self.CP.openpilotLongitudinalControl:
-      if CS.acc_type == 1 and self.CP.flags & VolkswagenFlags.PQ:
+      if CS.acc_type == 3 and self.CP.flags & VolkswagenFlags.PQ:
         gra_enabled = CC.longActive and CS.out.cruiseState.enabled
         set_speed = int(round(CS.out.cruiseState.speed * CV.MS_TO_KPH))
         actuator_speed = int(round(actuators.speed * CV.MS_TO_KPH))
@@ -312,12 +312,12 @@ class CarController(CarControllerBase):
 
     # **** Stock ACC Button Controls **************************************** #
 
-    gra_send_ready = self.CP.pcmCruise and CS.gra_stock_values["COUNTER"] != self.gra_acc_counter_last
+    gra_send_ready = CS.gra_stock_values["COUNTER"] != self.gra_acc_counter_last
     if gra_send_ready:
-      if CC.cruiseControl.cancel or CC.cruiseControl.resume:
+      if self.CP.pcmCruise and (CC.cruiseControl.cancel or CC.cruiseControl.resume):
         can_sends.append(self.CCS.create_acc_buttons_control(self.packer_pt, self.ext_bus, CS.gra_stock_values,
                                                              cancel=CC.cruiseControl.cancel, resume=CC.cruiseControl.resume))
-      elif self.gra_up or self.gra_down:
+      elif self.CP.openpilotLongitudinalControl and (self.gra_up or self.gra_down):
         can_sends.append(self.CCS.create_gra_buttons_control(self.packer_pt, self.ext_bus, CS.gra_stock_values,
                                                              up=self.gra_up, down=self.gra_down))
         self.gra_up = False
