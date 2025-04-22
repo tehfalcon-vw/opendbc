@@ -328,6 +328,7 @@ class CarController(CarControllerBase):
     new_actuators.torqueOutputCan = self.apply_torque_last
     new_actuators.curvature = float(self.apply_curvature_last)
     new_actuators.accel = self.accel_last
+    new_actuators.speed = actuators.speed
 
     self.lead_distance_bars_last = hud_control.leadDistanceBars
     self.gra_acc_counter_last = CS.gra_stock_values["COUNTER"]
