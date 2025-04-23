@@ -345,11 +345,23 @@ class CarState(CarStateBase):
     ret.buttonEvents = self.create_button_events(pt_cp, self.CCP.BUTTONS)
     self.gra_stock_values = pt_cp.vl["GRA_ACC_01"]
 
+    self.klr_stock_values = pt_cp.vl["KLR_01"] if self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT else {}
+
     # Additional safety checks performed in CarInterface.
     ret.espDisabled = bool(pt_cp.vl["ESP_21"]["ESP_Tastung_passiv"]) # this is also true for ESC Sport mode
     ret.espActive = bool(pt_cp.vl["ESP_21"]["ESP_Eingriff"])
 
     ret.fuelGauge = pt_cp.vl["Motor_16"]["MO_Energieinhalt_BMS"]
+
+    # EV battery details
+    ret.batteryDetails.charge = pt_cp.vl["Motor_16"]["MO_Energieinhalt_BMS"] # battery charge WattHours
+    if self.CP.networkLocation == NetworkLocation.gateway:
+      ret.batteryDetails.heaterActive = bool(main_cp.vl["MEB_HVEM_03"]["PTC_ON"]) # battery heater active
+      ret.batteryDetails.voltage = main_cp.vl["MEB_HVEM_01"]["Battery_Voltage"] # battery voltage
+      ret.batteryDetails.capacity = main_cp.vl["BMS_04"]["BMS_Kapazitaet_02"] * 355 # EV battery capacity Ah * nominal voltage cupra born WattHours
+      ret.batteryDetails.soc = ret.batteryDetails.charge / ret.batteryDetails.capacity * 100 if ret.batteryDetails.capacity > 0 else 0 # battery SoC in percent
+      ret.batteryDetails.power = main_cp.vl["MEB_HVEM_01"]["Engine_Power"] # engine power output
+      ret.batteryDetails.temperature = main_cp.vl["DCDC_03"]["DC_Temperatur"] # dcdc converter temperature
 
     self.frame += 1
     return ret
