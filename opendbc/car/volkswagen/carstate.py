@@ -344,7 +344,7 @@ class CarState(CarStateBase):
     else:
       self.speed_limit_mgr.update(pt_cp)
       speed_limit = self.speed_limit_mgr.get_speed_limit()
-      if speed_limit != self.speed_limit:
+      if speed_limit != self.speed_limit and speed_limit != 0:
         ret.cruiseState.speed = speed_limit
       self.speed_limit = speed_limit
 
