@@ -340,8 +340,7 @@ class CarState(CarStateBase):
       ret.cruiseState.speed = int(round(ext_cp.vl["MEB_ACC_01"]["ACC_Wunschgeschw_02"])) * CV.KPH_TO_MS
       if ret.cruiseState.speed > 90:
         ret.cruiseState.speed = 0
-        
-    elif self.CP.openpilotLongitudinalControl:
+    else:
       self.speed_limit_mgr.update(pt_cp)
       ret.cruiseState.speed = self.speed_limit_mgr.get_speed_limit()
 
@@ -379,32 +378,6 @@ class CarState(CarStateBase):
     perm_fault = drive_mode and hca_status == "DISABLED" or (self.eps_init_complete and hca_status == "FAULT")
     temp_fault = drive_mode and hca_status in ("REJECTED", "PREEMPTED") or not self.eps_init_complete
     return temp_fault, perm_fault
-
-  def update_traffic_signals(self, cp, v_limit, v_limit_receive, v_limit_speed_factor):
-    if self.CP.flags & VolkswagenFlags.MEB:
-      psd_06 = cp.vl["PSD_06"]
-      if psd_06["PSD_06_Mux"] == 2: # multiplex signal speed limit attribute state
-        if (v_limit_receive and # receiving allowed
-            psd_06["PSD_Ges_Typ"] == 1 and # current plausible speed limit
-            psd_06["PSD_Ges_Gesetzlich_Kategorie"] == 0): # detected non street type specific speed limit
-              
-          speed_limit_raw = psd_06["PSD_Ges_Geschwindigkeit"]
-          if speed_limit_raw > 0 and speed_limit_raw < 11:
-            v_limit = (speed_limit_raw - 1) * 5 # speed in steps of five from 0 to 45
-          elif speed_limit_raw >= 11 and speed_limit_raw < 23:
-            v_limit = 50 + (speed_limit_raw - 11) * 10 # speed in steps of ten from 50 to 160
-          else:
-            v_limit = 0
-  
-          v_limit = v_limit * v_limit_speed_factor
-          v_limit_receive = False # speed limit has been received, wait for next receive permission
-              
-      elif psd_06["PSD_06_Mux"] == 0: # multiplex signal in init state
-        v_limit_unit = psd_06["PSD_Sys_Geschwindigkeit_Einheit"]
-        v_limit_speed_factor = CV.MPH_TO_MS if v_limit_unit == 1 else CV.KPH_TO_MS if v_limit_unit == 0 else 0
-        v_limit_receive = True if psd_06["PSD_Sys_Quali_Tempolimits"] == 7 else False # receive permission by quality "flag"
-
-    return v_limit, v_limit_receive, v_limit_speed_factor
 
   @staticmethod
   def get_can_parsers(CP, CP_SP):
@@ -540,6 +513,7 @@ class CarState(CarStateBase):
       ("Gateway_73", 20),
       ("SAM_01", 5),
       ("Motor_51", 50),
+      ("PSD_06", 7),
     ]
       
     if CP.networkLocation == NetworkLocation.fwdCamera:
