@@ -215,6 +215,24 @@ class CarController(CarControllerBase):
           ea_simulated_torque = CS.out.steeringTorque
         can_sends.append(self.CCS.create_eps_update(self.packer_pt, CANBUS.cam, CS.eps_stock_values, ea_simulated_torque))
 
+    # Emergency Assist intervention
+    if self.CP.flags & VolkswagenFlags.MEB:
+      # Method 1: send default EA values
+      # by jyoung anti EA intervention, send default values
+      #if self.frame % 2 == 0:
+      #  can_sends.append(mebcan.create_ea_control(self.packer_pt, CANBUS.pt))
+      #if self.frame % 50 == 0:
+      #  can_sends.append(mebcan.create_ea_hud(self.packer_pt, CANBUS.pt))
+
+      # Method 2: send capacitive steering wheel touched
+      # propably EA could be stock activated only for cars equipped with capacitive steering wheel
+      # (also stock long does resume from stop as long as hands on is detected)
+      if self.frame % 6 == 0:
+        if self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT:
+          can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.ext_bus, CC.enabled, CS.klr_stock_values))
+        #else: # this else statement and following CAN command is for personal purposes: non KLR car with coded KLR for testing
+        #  can_sends.append(mebcan.create_hands_on_wheel_control(self.packer_pt, self.ext_bus))
+    
     # **** Acceleration Controls ******************************************** #
 
     if self.frame % self.CCP.ACC_CONTROL_STEP == 0 and self.CP.openpilotLongitudinalControl:
