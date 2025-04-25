@@ -60,6 +60,8 @@ def create_gra_buttons_control(packer, bus, gra_stock_values, up=False, down=Fal
 
   values.update({
     "COUNTER": (gra_stock_values["COUNTER"] + 1) % 16,
+    "GRA_Up_kurz": 1 if gra_stock_values["GRA_Down_kurz"] else 0, # reverse -10 user press
+    "GRA_Down_kurz": 1 if gra_stock_values["GRA_Up_kurz"] else 0, # reverse  +10 user press
     "GRA_Recall": up,
     "GRA_Neu_Setzen": down,
   })
