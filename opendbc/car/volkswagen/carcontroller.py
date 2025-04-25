@@ -103,6 +103,7 @@ class CarController(CarControllerBase):
     self.hca_frame_same_torque = 0
     self.lead_distance_bars_last = None
     self.distance_bar_frame = 0
+    self.gra_enabled = False
     self.gra_up = False
     self.gra_down = False
 
@@ -237,11 +238,11 @@ class CarController(CarControllerBase):
 
     if self.frame % self.CCP.ACC_CONTROL_STEP == 0 and self.CP.openpilotLongitudinalControl:
       if CS.acc_type == 3 and self.CP.flags & VolkswagenFlags.PQ:
-        gra_enabled = CC.longActive and CS.out.cruiseState.enabled
+        self.gra_enabled = CC.longActive and CS.out.cruiseState.enabled
         set_speed = int(round(CS.out.cruiseState.speed * CV.MS_TO_KPH))
         actuator_speed = int(round(actuators.speed * CV.MS_TO_KPH))
-        self.gra_up = True if set_speed < actuator_speed and gra_enabled else False
-        self.gra_down = True if set_speed > actuator_speed and gra_enabled else False
+        self.gra_up = True if set_speed < actuator_speed and self.gra_enabled else False
+        self.gra_down = True if set_speed > actuator_speed and self.gra_enabled else False
 
       else:
         stopping = actuators.longControlState == LongCtrlState.stopping
@@ -336,7 +337,7 @@ class CarController(CarControllerBase):
       if self.CP.pcmCruise and (CC.cruiseControl.cancel or CC.cruiseControl.resume):
         can_sends.append(self.CCS.create_acc_buttons_control(self.packer_pt, self.ext_bus, CS.gra_stock_values,
                                                              cancel=CC.cruiseControl.cancel, resume=CC.cruiseControl.resume))
-      elif self.CP.openpilotLongitudinalControl: #and (self.gra_up or self.gra_down): # send always to block original presses
+      elif self.CP.openpilotLongitudinalControl and self.gra_enabled: #and (self.gra_up or self.gra_down): # send always to block original presses
         can_sends.append(self.CCS.create_gra_buttons_control(self.packer_pt, self.ext_bus, CS.gra_stock_values,
                                                              up=self.gra_up, down=self.gra_down))
         self.gra_up = False
