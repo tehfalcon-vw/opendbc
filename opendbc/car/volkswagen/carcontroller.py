@@ -103,6 +103,7 @@ class CarController(CarControllerBase):
     self.hca_frame_same_torque = 0
     self.lead_distance_bars_last = None
     self.distance_bar_frame = 0
+    self.long_cruise_control = False
     self.gra_enabled = False
     self.gra_up = False
     self.gra_down = False
@@ -233,18 +234,22 @@ class CarController(CarControllerBase):
           can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.ext_bus, CC.enabled, CS.klr_stock_values))
         #else: # this else statement and following CAN command is for personal purposes: non KLR car with coded KLR for testing
         #  can_sends.append(mebcan.create_hands_on_wheel_control(self.packer_pt, self.ext_bus))
+
+    # **** Cruise Controls ************************************************** #
+    
+    self.long_cruise_control = True if CS.acc_type == 3 and self.CP.flags & VolkswagenFlags.PQ else False
+    
+    if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl and self.long_cruise_control:
+      self.gra_enabled = CC.longActive and CS.out.cruiseState.enabled
+      set_speed = int(round(CS.out.cruiseState.speed * CV.MS_TO_KPH))
+      actuator_speed = int(round(actuators.speed * CV.MS_TO_KPH))
+      self.gra_up = True if set_speed < actuator_speed and self.gra_enabled else False
+      self.gra_down = True if set_speed > actuator_speed and self.gra_enabled else False
     
     # **** Acceleration Controls ******************************************** #
 
     if self.frame % self.CCP.ACC_CONTROL_STEP == 0 and self.CP.openpilotLongitudinalControl:
-      if CS.acc_type == 3 and self.CP.flags & VolkswagenFlags.PQ:
-        self.gra_enabled = CC.longActive and CS.out.cruiseState.enabled
-        set_speed = int(round(CS.out.cruiseState.speed * CV.MS_TO_KPH))
-        actuator_speed = int(round(actuators.speed * CV.MS_TO_KPH))
-        self.gra_up = True if set_speed < actuator_speed and self.gra_enabled else False
-        self.gra_down = True if set_speed > actuator_speed and self.gra_enabled else False
-
-      else:
+      if not self.long_cruise_control:
         stopping = actuators.longControlState == LongCtrlState.stopping
         starting = actuators.longControlState == LongCtrlState.pid and (CS.esp_hold_confirmation or CS.out.vEgo < self.CP.vEgoStopping)
         
@@ -308,7 +313,7 @@ class CarController(CarControllerBase):
       self.distance_bar_frame = self.frame
     
     if self.frame % self.CCP.ACC_HUD_STEP == 0 and self.CP.openpilotLongitudinalControl:
-      if not(CS.acc_type == 3 and self.CP.flags & VolkswagenFlags.PQ):
+      if not self.long_cruise_control:
         if self.CP.flags & VolkswagenFlags.MEB:
           fcw_alert = True if hud_control.visualAlert == VisualAlert.fcw else False
           show_distance_bars = self.frame - self.distance_bar_frame < 400
@@ -337,7 +342,7 @@ class CarController(CarControllerBase):
       if self.CP.pcmCruise and (CC.cruiseControl.cancel or CC.cruiseControl.resume):
         can_sends.append(self.CCS.create_acc_buttons_control(self.packer_pt, self.ext_bus, CS.gra_stock_values,
                                                              cancel=CC.cruiseControl.cancel, resume=CC.cruiseControl.resume))
-      elif self.CP.openpilotLongitudinalControl and self.gra_enabled: #and (self.gra_up or self.gra_down): # send always to block original presses
+      elif self.CP.openpilotLongitudinalControl and self.long_cruise_control and self.gra_enabled:
         can_sends.append(self.CCS.create_gra_buttons_control(self.packer_pt, CANBUS.pt, CS.gra_stock_values,
                                                              up=self.gra_up, down=self.gra_down))
         self.gra_up = False
