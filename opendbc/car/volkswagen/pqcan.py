@@ -53,14 +53,15 @@ def create_gra_buttons_control(packer, bus, gra_stock_values, up=False, down=Fal
     "GRA_Hauptschalt",      # ACC button, on/off
     "GRA_Typ_Hauptschalt",  # ACC button, momentary vs latching
     "GRA_Kodierinfo",       # ACC button, configuration
+    "GRA_Sportschalter",
     "GRA_Sender",           # ACC button, CAN message originator
     "GRA_Abbrechen",        # ACC button, cancel
   ]}
 
   values.update({
     "COUNTER": (gra_stock_values["COUNTER"] + 1) % 16,
-    "GRA_Tip_Up": up,
-    "GRA_Tip_Down": down,
+    "GRA_Recall": up,
+    "GRA_Neu_Setzen": down,
   })
 
   return packer.make_can_msg("GRA_Neu", bus, values)
