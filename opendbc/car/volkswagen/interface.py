@@ -82,7 +82,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerLimitTimer = 0.4
     if ret.flags & VolkswagenFlags.PQ:
-      ret.steerActuatorDelay = 0.22
+      ret.steerActuatorDelay = 0.42 # live delay estimate,
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
     elif ret.flags & VolkswagenFlags.MEB:
       ret.steerActuatorDelay = 0.65 # live delay estimate, originally estimated 0.25
