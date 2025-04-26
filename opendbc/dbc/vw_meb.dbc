@@ -794,6 +794,7 @@ BO_ 870 Blinkmodi_02: 8 Gateway
  SG_ BM_Wischblinken : 37|1@1+ (1,0) [0|1] "" ZR_High
  SG_ BM_Telematik_Abbruchgrund : 38|6@1+ (1,0) [0|63] "" Vector__XXX
  SG_ BM_PiloPa : 44|1@1+ (1,0) [0|1] "" ZR_High
+ SG_ Unknown_01 : 45|2@1+ (1,0) [0|3] "" XXX
  SG_ DWA_Alarmquelle : 59|5@1+ (1,0) [0|31] "" ZR_High
 
 BO_ 888 GNSS_04: 8 Gateway
