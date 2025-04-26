@@ -341,7 +341,9 @@ class CarState(CarStateBase):
       if ret.cruiseState.speed > 90:
         ret.cruiseState.speed = 0
 
-    self.speed_limit_mgr.update(pt_cp)
+    psd_06_values = pt_cp.vl["PSD_06"]
+    psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {}
+    self.speed_limit_mgr.update(psd_06_values, psd_04_values)
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
@@ -586,4 +588,5 @@ class MebExtraSignals:
     ("MEB_HVEM_03", 2),
     ("BMS_04", 2),
     ("DCDC_03", 2),
+    ("PSD_04", 7),
   ]
