@@ -12,6 +12,7 @@ class SpeedLimitManager:
   def __init__(self, car_params):
     self.CP = car_params
     self.v_limit = SPEED_LIMIT_NOT_SET
+    self.v_limit_legal = SPEED_LIMIT_NOT_SET
     self.v_limit_receive = False
     self.v_limit_speed_factor = CV.KPH_TO_MS
     self.street_type = STREET_TYPE_NOT_SET
@@ -67,7 +68,7 @@ class SpeedLimitManager:
             (psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_NONURBAN and self.street_type == STREET_TYPE_NONURBAN) or
             (psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_HIGHWAY  and self.street_type == STREET_TYPE_HIGHWAY)):
           raw_speed = psd_06["PSD_Ges_Geschwindigkeit"]
-          self.v_limit = self.convert_raw_speed(raw_speed)
+          self.v_limit_legal = self.convert_raw_speed(raw_speed)
 
   def update(self, psd_06, psd_04):
     if not self.CP.flags & VolkswagenFlags.MEB:
@@ -78,9 +79,12 @@ class SpeedLimitManager:
     self.receive_speed_limit_permission(mux, psd_06)
     self.receive_speed_factor(mux, psd_06)
     self.receive_speed_limit_fusion(mux, psd_06) # try reading speed from car camera + navigation fusion
-    if psd_04 and self.v_limit == SPEED_LIMIT_NOT_SET:
+    if psd_04:
       self.receive_street_type(psd_04)
       self.receive_speed_limit_legal(mux, psd_06) # try reading speed from legal limit by current street type
     
   def get_speed_limit(self):
-    return self.v_limit
+    if self.v_limit == SPEED_LIMIT_NOT_SET:
+      return self.v_limit_legal
+    else:
+      return self.v_limit
