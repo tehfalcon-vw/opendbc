@@ -404,6 +404,7 @@ struct CarControl {
     cancel @0: Bool;
     resume @1: Bool;
     override @4: Bool;
+    speedLimit @5: Bool;
     speedOverrideDEPRECATED @2: Float32;
     accelOverrideDEPRECATED @3: Float32;
   }
