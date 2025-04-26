@@ -312,8 +312,8 @@ class CarState(CarStateBase):
     # and capture it for forwarding to the blind spot radar controller
     self.ldw_stock_values = cam_cp.vl["LDW_02"]
 
-    ret.stockFcw = bool(pt_cp.vl["VMM_02"]["FCW_Active"]) or bool(ext_cp.vl["AWV_03"]["FCW_Active"]) #or self.get_acc_warning_meb(ext_cp.vl["MEB_ACC_01"])
-    ret.stockAeb = bool(pt_cp.vl["VMM_02"]["AEB_Active"])
+    ret.stockFcw = bool(ext_cp.vl["AWV_03"]["FCW_Active"]) # currently most plausible candidate
+    ret.stockAeb = False #bool(pt_cp.vl["VMM_02"]["AEB_Active"]) TODO find correct signal
 
     self.acc_type = ext_cp.vl["ACC_18"]["ACC_Typ"]
     self.travel_assist_available = bool(cam_cp.vl["TA_01"]["Travel_Assist_Available"])
