@@ -341,10 +341,15 @@ class CarState(CarStateBase):
       if ret.cruiseState.speed > 90:
         ret.cruiseState.speed = 0
 
-    psd_06_values = pt_cp.vl["PSD_06"]
+    # Traffic Sign Recognition
+    # psd_06_values = pt_cp.vl["PSD_06"]
     psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {}
-    self.speed_limit_mgr.update(psd_06_values, psd_04_values)
-    ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
+    # self.speed_limit_mgr.update(psd_06_values, psd_04_values)
+    # ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
+    if cam_cp.vl["MEB_VZE_01"]["VZE_Verkehrszeichen_1_Typ"] == 0:
+      ret.cruiseState.speedLimit = int(round(cam_cp.vl["MEB_VZE_01"]["VZE_Verkehrszeichen_1"])) * CV.KPH_TO_MS
+      if ret.cruiseState.speedLimit > 45:
+        ret.cruiseState.speedLimit = 0
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
     ret.leftBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
@@ -532,6 +537,7 @@ class CarState(CarStateBase):
       # sig_address, frequency
       ("LDW_02", 10),     # From R242 Driver assistance camera
       ("TA_01", 10),      # From R242 Driver assistance camera (Travel Assist)
+      ("MEB_VZE_01", 5),      # From R242 Driver assistance camera (Traffic Sign Detection)
     ]
     
     if CP.networkLocation == NetworkLocation.gateway:
