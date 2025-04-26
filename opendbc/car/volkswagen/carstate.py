@@ -22,7 +22,6 @@ class CarState(CarStateBase):
     self.eps_stock_values = False
     self.curvature = 0.
     self.speed_limit_mgr = SpeedLimitManager(CP)
-    self.speed_limit = 0
 
   def update_button_enable(self, buttonEvents: list[structs.CarState.ButtonEvent]):
     if not self.CP.pcmCruise:
@@ -341,12 +340,9 @@ class CarState(CarStateBase):
       ret.cruiseState.speed = int(round(ext_cp.vl["MEB_ACC_01"]["ACC_Wunschgeschw_02"])) * CV.KPH_TO_MS
       if ret.cruiseState.speed > 90:
         ret.cruiseState.speed = 0
-    else:
-      self.speed_limit_mgr.update(pt_cp)
-      speed_limit = self.speed_limit_mgr.get_speed_limit()
-      if speed_limit != self.speed_limit and speed_limit != 0:
-        ret.cruiseState.speed = speed_limit
-      self.speed_limit = speed_limit
+
+    self.speed_limit_mgr.update(pt_cp)
+    ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
     ret.leftBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
