@@ -239,7 +239,7 @@ class CarController(CarControllerBase):
     
     self.long_cruise_control = True if CS.acc_type == 3 and self.CP.flags & VolkswagenFlags.PQ else False
     
-    if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl and self.long_cruise_control:
+    if self.frame % 15 == 0 and self.CP.openpilotLongitudinalControl and self.long_cruise_control:
       self.gra_enabled = CC.longActive and CS.out.cruiseState.enabled
       set_speed = int(round(CS.out.cruiseState.speed * CV.MS_TO_KPH))
       actuator_speed = int(round(actuators.speed * CV.MS_TO_KPH))
