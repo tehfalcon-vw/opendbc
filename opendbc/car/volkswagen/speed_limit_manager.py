@@ -27,10 +27,10 @@ class SpeedLimitManager:
     if not self.CP.flags & VolkswagenFlags.MEB:
       return
 
-    # try reading speed form trafic sign recognition
+    # try reading speed form traffic sign recognition
     self._receive_speed_limit_vze(vze)
     
-    # try reading speed from predictive street data
+    # try reading speed from predicative street data
     mux = psd_06["PSD_06_Mux"]
     self._receive_speed_limit_permission(mux, psd_06)
     self._receive_speed_factor(mux, psd_06)
