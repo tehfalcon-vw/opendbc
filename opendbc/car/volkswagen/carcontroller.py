@@ -305,7 +305,7 @@ class CarController(CarControllerBase):
         sound_alert = self.CCP.LDW_SOUNDS["Beep"] if hud_alert == self.CCP.LDW_MESSAGES["laneAssistTakeOver"] else self.CCP.LDW_SOUNDS["None"]
         can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, CANBUS.pt, CS.ldw_stock_values, CC.latActive,
                                                          CS.out.steeringPressed, hud_alert, hud_control, sound_alert))
-      elif CP.flags & VolkswagenFlags.PQ:
+      elif self.CP.flags & VolkswagenFlags.PQ:
         can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, CANBUS.main, CS.ldw_stock_values, CC.latActive,
                                                          CS.out.steeringPressed, hud_alert, hud_control))
       else:
@@ -342,7 +342,7 @@ class CarController(CarControllerBase):
 
     gra_send_ready = CS.gra_stock_values["COUNTER"] != self.gra_acc_counter_last
     if gra_send_ready:
-      bus_send = CANBUS.main if CP.flags & VolkswagenFlags.PQ else self.ext_bus
+      bus_send = CANBUS.main if self.CP.flags & VolkswagenFlags.PQ else self.ext_bus
       if self.CP.pcmCruise and (CC.cruiseControl.cancel or CC.cruiseControl.resume):
         can_sends.append(self.CCS.create_acc_buttons_control(self.packer_pt, bus_send, CS.gra_stock_values,
                                                              cancel=CC.cruiseControl.cancel, resume=CC.cruiseControl.resume))
