@@ -55,6 +55,9 @@ class SpeedLimitManager:
     return v_limit_output
 
   def _speed_limit_vze_sanitiy_check(self, speed_limit_vze_new):
+    if self.v_limit_output_last == SPEED_LIMIT_NOT_SET:
+      return
+      
     diff_p = 100 * speed_limit_vze_new / self.v_limit_output_last
     self.v_limit_vze_sanity_error = True if diff_p < SANITY_CHECK_DIFF_PERCENT_LOWER else False
     if speed_limit_vze_new > SPEED_LIMIT_UNLIMITED_VZE_MS: # unlimited sign detected: use psd logic for setting maximum speed
