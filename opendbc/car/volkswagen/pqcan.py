@@ -62,6 +62,8 @@ def create_gra_buttons_control(packer, bus, gra_stock_values, up=False, down=Fal
     "COUNTER": (gra_stock_values["COUNTER"] + 1) % 16,
     "GRA_Recall": up,
     "GRA_Neu_Setzen": down,
+    "GRA_Down_kurz": gra_stock_values["GRA_Up_kurz"], # reverse -10 button press
+    "GRA_Up_kurz": gra_stock_values["GRA_Down_kurz"], # reverse +10 button press
   })
 
   return packer.make_can_msg("GRA_Neu", bus, values)
