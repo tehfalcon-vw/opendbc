@@ -353,9 +353,12 @@ class CarController(CarControllerBase):
         self.gra_down = False
 
     # TESTING
+    if self.frame % 50 == 0:
+      self.gra_up = True
     if gra_send_ready:
       can_sends.append(self.CCS.create_gra_buttons_control_2(self.packer_pt, CANBUS.main, CS.gra_stock_values,
-                                                             up=True, down=self.gra_down))
+                                                             up=self.gra_up, down=self.gra_down))
+      self.gra_up = False
 
     new_actuators = actuators.as_builder()
     new_actuators.torque = self.apply_torque_last / self.CCP.STEER_MAX
