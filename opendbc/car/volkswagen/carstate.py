@@ -341,19 +341,12 @@ class CarState(CarStateBase):
       if ret.cruiseState.speed > 90:
         ret.cruiseState.speed = 0
 
-    # Traffic Sign Recognition
-    # by fusion signal from camera
-    if cam_cp.vl["MEB_VZE_01"]["VZE_Verkehrszeichen_1_Typ"] == 0:
-      ret.cruiseState.speedLimit = int(round(cam_cp.vl["MEB_VZE_01"]["VZE_Verkehrszeichen_1"])) * CV.KPH_TO_MS # main traffic sign
-      if ret.cruiseState.speedLimit > 144:
-        ret.cruiseState.speedLimit = 0
-
-    # by predictive street data as fallback
-    if ret.cruiseState.speedLimit == 0: # unlimited or nothing detected
-      psd_06_values = pt_cp.vl["PSD_06"]
-      psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {}
-      self.speed_limit_mgr.update(psd_06_values, psd_04_values)
-      ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
+    # Speed Limit
+    vze_01_values = cam_cp.vl["MEB_VZE_01"] # Traffic Sign Recognition
+    psd_06_values = pt_cp.vl["PSD_06"] # Predictive Street Data
+    psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {}
+    self.speed_limit_mgr.update(psd_06_values, psd_04_values, vze_01_values)
+    ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
     ret.leftBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
