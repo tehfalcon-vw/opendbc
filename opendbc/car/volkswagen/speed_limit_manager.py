@@ -2,17 +2,17 @@ from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.volkswagen.values import VolkswagenFlags
 
 SPEED_LIMIT_NOT_SET = 0
-SPEED_SUGGESTED_MAX_HIGHWAY_KPH = 120 # 130 kph in germany, my preference is 120 kph
+SPEED_SUGGESTED_MAX_HIGHWAY_GER_KPH = 130 # 130 kph in germany
 STREET_TYPE_NOT_SET = 0
 STREET_TYPE_URBAN = 1
 STREET_TYPE_NONURBAN = 2
 STREET_TYPE_HIGHWAY = 3
 SANITY_CHECK_DIFF_PERCENT_LOWER = 30
-SPEED_LIMIT_UNLIMITED_VZE_MS = 45
+SPEED_LIMIT_UNLIMITED_VZE_MS = 144
 
 
 class SpeedLimitManager:
-  def __init__(self, car_params):
+  def __init__(self, car_params, speed_limit_max_kph=SPEED_SUGGESTED_MAX_HIGHWAY_GER_KPH):
     self.CP = car_params
     self.v_limit_psd = SPEED_LIMIT_NOT_SET
     self.v_limit_psd_legal = SPEED_LIMIT_NOT_SET
@@ -22,15 +22,16 @@ class SpeedLimitManager:
     self.street_type = STREET_TYPE_NOT_SET
     self.v_limit_vze_sanity_error = False
     self.v_limit_output_last = SPEED_LIMIT_NOT_SET
+    self.v_limit_max = speed_limit_max_kph
 
   def update(self, psd_06, psd_04, vze):
     if not self.CP.flags & VolkswagenFlags.MEB:
       return
 
-    # try reading speed form trafic sign recognition
+    # try reading speed form traffic sign recognition
     self._receive_speed_limit_vze(vze)
     
-    # try reading speed from predictive street data
+    # try reading speed from predicative street data
     mux = psd_06["PSD_06_Mux"]
     self._receive_speed_limit_permission(mux, psd_06)
     self._receive_speed_factor(mux, psd_06)
@@ -49,12 +50,18 @@ class SpeedLimitManager:
     else:
       v_limit_output = self.v_limit_psd_legal
 
+    if v_limit_output > self.v_limit_max:
+      v_limit_output = self.v_limit_max
+    
     self.v_limit_vze_sanity_error = False
     self.v_limit_output_last = v_limit_output
     
     return v_limit_output
 
   def _speed_limit_vze_sanitiy_check(self, speed_limit_vze_new):
+    if self.v_limit_output_last == SPEED_LIMIT_NOT_SET:
+      return
+      
     diff_p = 100 * speed_limit_vze_new / self.v_limit_output_last
     self.v_limit_vze_sanity_error = True if diff_p < SANITY_CHECK_DIFF_PERCENT_LOWER else False
     if speed_limit_vze_new > SPEED_LIMIT_UNLIMITED_VZE_MS: # unlimited sign detected: use psd logic for setting maximum speed
@@ -76,7 +83,7 @@ class SpeedLimitManager:
       speed = 50 + (raw_speed - 11) * 10
     elif raw_speed == 23: # explicitly no legal speed limit 
       if self.street_type == STREET_TYPE_HIGHWAY:
-        speed = SPEED_SUGGESTED_MAX_HIGHWAY_KPH
+        speed = self.v_limit_max
       else:
         speed = SPEED_LIMIT_NOT_SET
     else:

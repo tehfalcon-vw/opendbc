@@ -21,7 +21,7 @@ class CarState(CarStateBase):
     self.upscale_lead_car_signal = False
     self.eps_stock_values = False
     self.curvature = 0.
-    self.speed_limit_mgr = SpeedLimitManager(CP)
+    self.speed_limit_mgr = SpeedLimitManager(CP, speed_limit_max_kph=120)
 
   def update_button_enable(self, buttonEvents: list[structs.CarState.ButtonEvent]):
     if not self.CP.pcmCruise:
@@ -343,7 +343,7 @@ class CarState(CarStateBase):
 
     # Speed Limit
     vze_01_values = cam_cp.vl["MEB_VZE_01"] # Traffic Sign Recognition
-    psd_06_values = pt_cp.vl["PSD_06"] # Predictive Street Data
+    psd_06_values = pt_cp.vl["PSD_06"] # Predicative Street Data
     psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {}
     self.speed_limit_mgr.update(psd_06_values, psd_04_values, vze_01_values)
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
