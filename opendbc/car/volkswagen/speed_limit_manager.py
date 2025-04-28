@@ -12,7 +12,7 @@ SPEED_LIMIT_UNLIMITED_VZE_MS = 144
 
 
 class SpeedLimitManager:
-  def __init__(self, car_params):
+  def __init__(self, car_params, speed_limit_max=SPEED_SUGGESTED_MAX_HIGHWAY_KPH):
     self.CP = car_params
     self.v_limit_psd = SPEED_LIMIT_NOT_SET
     self.v_limit_psd_legal = SPEED_LIMIT_NOT_SET
@@ -22,6 +22,7 @@ class SpeedLimitManager:
     self.street_type = STREET_TYPE_NOT_SET
     self.v_limit_vze_sanity_error = False
     self.v_limit_output_last = SPEED_LIMIT_NOT_SET
+    self.speed_limit_max = speed_limit_max
 
   def update(self, psd_06, psd_04, vze):
     if not self.CP.flags & VolkswagenFlags.MEB:
@@ -49,6 +50,9 @@ class SpeedLimitManager:
     else:
       v_limit_output = self.v_limit_psd_legal
 
+    if v_limit_output > self.speed_limit_max:
+      v_limit_output = self.speed_limit_max
+    
     self.v_limit_vze_sanity_error = False
     self.v_limit_output_last = v_limit_output
     
@@ -79,7 +83,7 @@ class SpeedLimitManager:
       speed = 50 + (raw_speed - 11) * 10
     elif raw_speed == 23: # explicitly no legal speed limit 
       if self.street_type == STREET_TYPE_HIGHWAY:
-        speed = SPEED_SUGGESTED_MAX_HIGHWAY_KPH
+        speed = self.speed_limit_max
       else:
         speed = SPEED_LIMIT_NOT_SET
     else:
