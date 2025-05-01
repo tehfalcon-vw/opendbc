@@ -21,7 +21,7 @@ class CarState(CarStateBase):
     self.upscale_lead_car_signal = False
     self.eps_stock_values = False
     self.curvature = 0.
-    self.speed_limit_mgr = SpeedLimitManager(CP, speed_limit_max_kph=120)
+    self.speed_limit_mgr = SpeedLimitManager(CP, speed_limit_max_kph=120, predicative=True)
 
   def update_button_enable(self, buttonEvents: list[structs.CarState.ButtonEvent]):
     if not self.CP.pcmCruise:
@@ -343,9 +343,11 @@ class CarState(CarStateBase):
 
     # Speed Limit
     vze_01_values = cam_cp.vl["MEB_VZE_01"] # Traffic Sign Recognition
+    psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {} # Predicative Street Data
+    psd_05_values = main_cp.vl["PSD_05"] if self.CP.networkLocation == NetworkLocation.gateway else {} # Predicative Street Data
     psd_06_values = pt_cp.vl["PSD_06"] # Predicative Street Data
-    psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {}
-    self.speed_limit_mgr.update(psd_06_values, psd_04_values, vze_01_values)
+    
+    self.speed_limit_mgr.update(psd_04_values, psd_05_values, psd_06_values, vze_01_values)
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
@@ -592,4 +594,5 @@ class MebExtraSignals:
     ("BMS_04", 2),
     ("DCDC_03", 2),
     ("PSD_04", 7),
+    ("PSD_05", 7),
   ]
