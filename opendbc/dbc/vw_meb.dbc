@@ -2110,9 +2110,11 @@ BO_ 316495015 MEB_VZE_01: 32 XXX
  SG_ VZE_Verkehrszeichen_4 : 75|8@1+ (1,0) [0|31] "" XXX
  SG_ VZE_Verkehrszeichen_6 : 92|7@1+ (1,0) [0|7] "" XXX
  SG_ VZE_Baustelle : 110|1@0+ (1,0) [0|1] "" XXX
- SG_ Zeichen_X1 : 129|4@1+ (1,0) [0|15] "" XXX
- SG_ Zeichen_X1_Entfernung : 140|6@1+ (1,0) [0|15] "" XXX
- SG_ Zusatzschild_X1 : 147|2@1+ (1,0) [0|3] "" XXX
+ SG_ Zeichen_Unknown : 129|4@1+ (1,0) [0|15] "" XXX
+ SG_ Zeichen_Unknown_Entfernung : 140|6@1+ (1,0) [0|15] "" XXX
+ SG_ Zusatzschild_Unknown : 147|2@1+ (1,0) [0|3] "" XXX
+ SG_ Unknown_02 : 167|4@1+ (1,0) [0|3] "" XXX
+ SG_ Unknown_01 : 207|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 316495049 SAL_01: 8 XXX
  SG_ CRC : 0|8@1+ (1,0) [0|255] "" XXX
