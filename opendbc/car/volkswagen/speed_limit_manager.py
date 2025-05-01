@@ -37,12 +37,13 @@ class SpeedLimitManager:
     self._receive_speed_limit_vze(vze)
     
     # try reading speed from predicative street data
-    self._receive_speed_limit_permission(psd_06)
-    self._build_predicative_segments(psd_04, psd_05, psd_06):
-    self._receive_speed_factor_psd(psd_06)
-    self._receive_speed_limit_psd_legal(psd_06)
-    self._get_speed_limit_psd()
-    self._get_speed_limit_psd_next(current_speed)
+    if psd_04 and psd_06 and psd_06:
+      self._receive_speed_limit_permission(psd_06)
+      self._build_predicative_segments(psd_04, psd_05, psd_06):
+      self._receive_speed_factor_psd(psd_06)
+      self._receive_speed_limit_psd_legal(psd_06)
+      self._get_speed_limit_psd()
+      self._get_speed_limit_psd_next(current_speed)
     
   def get_speed_limit(self):
     if (self.predicative == True and self.v_limit_psd_next != NOT_SET):
