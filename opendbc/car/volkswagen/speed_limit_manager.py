@@ -1,30 +1,35 @@
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.volkswagen.values import VolkswagenFlags
 
-SPEED_LIMIT_NOT_SET = 0
+NOT_SET = 0
 SPEED_SUGGESTED_MAX_HIGHWAY_GER_KPH = 130 # 130 kph in germany
-STREET_TYPE_NOT_SET = 0
 STREET_TYPE_URBAN = 1
 STREET_TYPE_NONURBAN = 2
 STREET_TYPE_HIGHWAY = 3
 SANITY_CHECK_DIFF_PERCENT_LOWER = 30
 SPEED_LIMIT_UNLIMITED_VZE_MS = 144
+ACCELERATION_PREDICATIVE = 2
 
 
 class SpeedLimitManager:
-  def __init__(self, car_params, speed_limit_max_kph=SPEED_SUGGESTED_MAX_HIGHWAY_GER_KPH):
+  def __init__(self, car_params, speed_limit_max_kph=SPEED_SUGGESTED_MAX_HIGHWAY_GER_KPH, predicative=False):
     self.CP = car_params
-    self.v_limit_psd = SPEED_LIMIT_NOT_SET
-    self.v_limit_psd_legal = SPEED_LIMIT_NOT_SET
-    self.v_limit_vze = SPEED_LIMIT_NOT_SET
+    self.v_limit_psd = NOT_SET
+    self.v_limit_psd_next = NOT_SET
+    self.v_limit_psd_legal = NOT_SET
+    self.v_limit_vze = NOT_SET
     self.v_limit_receive = False
+    self.v_limit_receive_segment_id = None
     self.v_limit_speed_factor = CV.KPH_TO_MS
-    self.street_type = STREET_TYPE_NOT_SET
+    self.street_type = NOT_SET
     self.v_limit_vze_sanity_error = False
-    self.v_limit_output_last = SPEED_LIMIT_NOT_SET
+    self.v_limit_output_last = NOT_SET
     self.v_limit_max = speed_limit_max_kph
+    self.predicative = predicative
+    self.predicative_segments = {}
+    self.current_predicative_segment = {"ID": NOT_SET, "Length": NOT_SET}
 
-  def update(self, psd_06, psd_04, vze):
+  def update(self, current_speed, psd_04, psd_05, psd_06, vze):
     if not self.CP.flags & VolkswagenFlags.MEB:
       return
 
@@ -32,20 +37,19 @@ class SpeedLimitManager:
     self._receive_speed_limit_vze(vze)
     
     # try reading speed from predicative street data
-    mux = psd_06["PSD_06_Mux"]
-    self._receive_speed_limit_permission(mux, psd_06)
-    self._receive_speed_factor(mux, psd_06)
-    self._receive_speed_limit_psd(mux, psd_06)
-    
-    # try reading speed from legal limit by current street type from psd
-    if psd_04:
-      self._receive_street_type(psd_04)
-      self._receive_speed_limit_psd_legal(mux, psd_06)
+    self._receive_speed_limit_permission(psd_06)
+    self._build_predicative_segments(psd_04, psd_05, psd_06):
+    self._receive_speed_factor_psd(psd_06)
+    self._receive_speed_limit_psd_legal(psd_06)
+    self._get_speed_limit_psd()
+    self._get_speed_limit_psd_next(current_speed)
     
   def get_speed_limit(self):
-    if (self.v_limit_vze != SPEED_LIMIT_NOT_SET and self.v_limit_vze_sanity_error != True):
+    if (self.predicative == True and self.v_limit_psd_next != NOT_SET):
+      v_limit_output = self.v_limit_psd_next
+    elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
       v_limit_output = self.v_limit_vze
-    elif self.v_limit_psd != SPEED_LIMIT_NOT_SET:
+    elif self.v_limit_psd != NOT_SET:
       v_limit_output = self.v_limit_psd
     else:
       v_limit_output = self.v_limit_psd_legal
@@ -59,7 +63,7 @@ class SpeedLimitManager:
     return v_limit_output
 
   def _speed_limit_vze_sanitiy_check(self, speed_limit_vze_new):
-    if self.v_limit_output_last == SPEED_LIMIT_NOT_SET:
+    if self.v_limit_output_last == NOT_SET:
       return
       
     diff_p = 100 * speed_limit_vze_new / self.v_limit_output_last
@@ -67,14 +71,16 @@ class SpeedLimitManager:
     if speed_limit_vze_new > SPEED_LIMIT_UNLIMITED_VZE_MS: # unlimited sign detected: use psd logic for setting maximum speed
       self.v_limit_vze_sanity_error = True
 
-  def _receive_speed_factor(self, mux, psd_06):
-    if mux == 0:
+  def _receive_speed_factor_psd(self, psd_06):
+    if psd_06["PSD_06_Mux"] == 0:
       unit = psd_06["PSD_Sys_Geschwindigkeit_Einheit"]
       self.v_limit_speed_factor = CV.MPH_TO_MS if unit == 1 else CV.KPH_TO_MS if unit == 0 else 0
 
-  def _receive_speed_limit_permission(self, mux, psd_06):
-    if mux == 0:
-      self.v_limit_receive = psd_06["PSD_Sys_Quali_Tempolimits"] == 7
+  def _receive_speed_limit_permission(self, psd_06):
+    if psd_06["PSD_06_Mux"] == 0:
+      permission = psd_06["PSD_Sys_Quali_Tempolimits"] == 7
+      self.v_limit_receive = permission
+      self.v_limit_receive_segment_id = psd_06["PSD_Sys_Segment_ID"] if permission else NOT_SET
 
   def _convert_raw_speed_psd(self, raw_speed):
     if 0 < raw_speed < 11: # 0 - 45 kph
@@ -85,9 +91,9 @@ class SpeedLimitManager:
       if self.street_type == STREET_TYPE_HIGHWAY:
         speed = self.v_limit_max
       else:
-        speed = SPEED_LIMIT_NOT_SET
+        speed = NOT_SET
     else:
-      speed = SPEED_LIMIT_NOT_SET
+      speed = NOT_SET
       
     return speed * self.v_limit_speed_factor
 
@@ -101,33 +107,143 @@ class SpeedLimitManager:
       self._speed_limit_vze_sanitiy_check(v_limit_vze)
       self.v_limit_vze = v_limit_vze
 
-  def _receive_speed_limit_psd(self, mux, psd_06):
-    if mux == 2:
-      if (self.v_limit_receive and
-          psd_06["PSD_Ges_Typ"] == 1 and
-          psd_06["PSD_Ges_Gesetzlich_Kategorie"] == 0):
+  def _receive_current_position_psd(self, psd_05):
+    if psd_05["PSD_Pos_Standort_Eindeutig"] == 1:
+      self.current_predicative_segment["ID"] = psd_05["PSD_Pos_Segment_ID"]
+      self.current_predicative_segment["Length"] = psd_05["PSD_Pos_Segmentlaenge"]
 
-        raw_speed = psd_06["PSD_Ges_Geschwindigkeit"]
-        self.v_limit_psd = self._convert_raw_speed_psd(raw_speed)
+  def _build_predicative_segments(self, psd_04, psd_05, psd_06):
+    # Schritt 1: Segment erfassen/aktualisieren
+    if (psd_04["PSD_ADAS_Qualitaet"] == 1 and
+        psd_04["PSD_wahrscheinlichster_Pfad"] == 1 and
+        psd_04["PSD_Segment_Komplett"] == 1 and
+        psd_04["PSD_Segment_ID"] != NOT_SET):
 
-        self.v_limit_receive = False
+      segment_id = psd_04["PSD_Segment_ID"]
+      seg = self.predicative_segments.get(segment_id)
+      if seg:
+        seg["Length"] = psd_04["PSD_Segmentlaenge"]
+        seg["StreetType"] = self._get_street_type(psd_04["PSD_Strassenkategorie"], psd_04["PSD_Bebauung"])
+        seg["ID_Prev"] = psd_04["PSD_Vorgaenger_Segment_ID"]
+      else:
+        self.predicative_segments[segment_id] = {
+          "ID": segment_id,
+          "Length": psd_04["PSD_Segmentlaenge"],
+          "StreetType": self._get_street_type(psd_04["PSD_Strassenkategorie"], psd_04["PSD_Bebauung"]),
+          "ID_Prev": psd_04["PSD_Vorgaenger_Segment_ID"],
+          "Speed": NOT_SET,
+          "QualityFlag": False
+        }
 
-  def _receive_street_type(self, psd_04):
-    if psd_04["PSD_Segment_Komplett"] == 1 and psd_04["PSD_wahrscheinlichster_Pfad"] == 1:
-      if psd_04["PSD_Strassenkategorie"] == 1: # base type: urban
-        self.street_type = STREET_TYPE_URBAN
+    # Schritt 2: Alte Segmente bereinigen
+    if psd_05["PSD_Pos_Standort_Eindeutig"] == 1:
+      current_id = psd_05["PSD_Pos_Segment_ID"]
+      valid_ids = set()
+      seg_id = current_id
+      while seg_id in self.predicative_segments:
+        valid_ids.add(seg_id)
+        seg_id = self.predicative_segments[seg_id].get("ID_Prev")
+        if seg_id is None or seg_id in valid_ids:
+          break
+      self.predicative_segments = {
+        sid: seg for sid, seg in self.predicative_segments.items()
+        if sid in valid_ids
+      }
+
+    # Schritt 3: Geschwindigkeit setzen
+    if (self.v_limit_receive and
+        psd_06["PSD_06_Mux"] == 2 and
+        psd_06["PSD_Ges_Typ"] == 1 and
+        psd_06["PSD_Ges_Gesetzlich_Kategorie"] == 0):
+
+      raw_speed = psd_06["PSD_Ges_Geschwindigkeit"]
+      segment_id = self.v_limit_receive_segment_id
+
+      if segment_id in self.predicative_segments:
+        speed = self._convert_raw_speed_psd(raw_speed)
+        self.predicative_segments[segment_id]["Speed"] = speed
+        self.predicative_segments[segment_id]["QualityFlag"] = True
+
+      self.v_limit_receive = False
+      self.v_limit_receive_segment_id = NOT_SET
+
+  def _get_speed_limit_psd_next(self, current_speed):
+    """
+    Setzt self.v_limit_psd_next, wenn ein zukünftiges Speed Limit rechtzeitig erreichbar ist.
+    """
+    current_id = self.current_predicative_segment.get("ID")
+    length_remaining = self.current_predicative_segment.get("Length")
+    self.v_limit_psd_next = NOT_SET
+
+    if current_id == NOT_SET or length_remaining == NOT_SET:
+      return
+
+    current_speed_psd = current_speed * CV.KPH_TO_MS
+    total_dist = length_remaining
+    visited = set()
+    seg_id = current_id
+
+    while seg_id and seg_id not in visited:
+      visited.add(seg_id)
+
+      # Finde nächstes Segment in Fahrtrichtung (ID_Prev == aktuelles Segment)
+      next_id = None
+      for candidate_id, seg in self.predicative_segments.items():
+        if seg.get("ID_Prev") == seg_id:
+          next_id = candidate_id
+          break
+
+      if not next_id or next_id in visited:
+        break
+
+      next_seg = self.predicative_segments.get(next_id)
+      if not next_seg:
+        break
+
+      if not next_seg.get("QualityFlag", False):
+        break
+
+      next_speed_kmh = next_seg.get("Speed")
+      if next_speed_kmh != NOT_SET and next_speed_kmh != current_speed_kmh:
+        target_speed = next_speed_kmh * CV.KPH_TO_MS
+        delta_v = abs(current_speed - target_speed)
+        braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
+
+        if total_dist >= braking_distance:
+          self.v_limit_psd_next = next_speed_kmh
+        return
+
+      total_dist += next_seg.get("Length", 0)
+      seg_id = next_id
+
+  def _get_speed_limit_psd(self):
+    seg_id = self.current_predicative_segment.get("ID")
+    if seg_id == NOT_SET:
+      self.v_limit_psd = NOT_SET
+
+    seg = self.predicative_segments.get(seg_id)
+    if seg and seg.get("Speed") != NOT_SET:
+      self.v_limit_psd = seg.get("Speed")
+
+  def _get_street_type(self, strassenkategorie, bebauung):
+    street_type = NOT_SET
+    
+    if strassenkategorie == 1: # base type: urban
+      street_type = STREET_TYPE_URBAN
           
-      elif psd_04["PSD_Strassenkategorie"] in (2, 3, 4): # base type: non urban
-        if psd_04["PSD_Bebauung"] == 1:
-          self.street_type = STREET_TYPE_URBAN
-        else:
-          self.street_type = STREET_TYPE_NONURBAN
+    elif strassenkategorie in (2, 3, 4): # base type: non urban
+      if bebauung == 1:
+        street_type = STREET_TYPE_URBAN
+      else:
+        street_type = STREET_TYPE_NONURBAN
         
-      elif psd_04["PSD_Strassenkategorie"] == 5: # base type: highway
-        self.street_type = STREET_TYPE_HIGHWAY
+    elif strassenkategorie == 5: # base type: highway
+      street_type = STREET_TYPE_HIGHWAY
 
-  def _receive_speed_limit_psd_legal(self, mux, psd_06):
-    if mux == 2:
+    return street_type
+
+  def _receive_speed_limit_psd_legal(self, psd_06):
+    if psd_06["PSD_06_Mux"] == 2:
       if psd_06["PSD_Ges_Typ"] == 2:
         if ((psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_URBAN    and self.street_type == STREET_TYPE_URBAN) or
             (psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_NONURBAN and self.street_type == STREET_TYPE_NONURBAN) or
