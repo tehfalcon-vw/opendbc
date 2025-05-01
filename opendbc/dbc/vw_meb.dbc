@@ -2399,7 +2399,7 @@ VAL_ 768 Heartbeat 1 "ACC_Init_Low" 420 "ACC_Init_High" 221 "ACC_Available_Low" 
 VAL_ 768 ACC_Status_ACC 0 "ACC_OFF_Hauptschalter_aus" 1 "ACC_INIT" 2 "ACC_STANDBY" 3 "ACC_AKTIV_regelt" 4 "ACC_OVERRIDE" 5 "ACC_Abschaltreaktion" 6 "reversibler_Fehler_im_ACC_System" 7 "irreversibler_Fehler_im_ACC_System";
 VAL_ 768 Lead_Type_Detected 1 "Lead_Detected" 0 "No_Lead_Detected";
 VAL_ 768 Lead_Type 5 "Bicycle" 3 "Car" 0 "None" 2 "Truck" 4 "Motorcycle";
-VAL_ 768 ACC_Events 3 "Starting_Available" 0 "None" 5 "Speed_Limit_Camera" 9 "Street_Type" 4 "Speed_Limit_in_Nav";
+VAL_ 768 ACC_Events 3 "Starting_Available" 0 "None" 5 "Speed_Limit_Camera" 9 "Crossing" 4 "Speed_Limit_Nav" 10 "Roundabout";
 VAL_ 768 Zeitluecke_1 0 "keine Anzeige";
 VAL_ 768 Zeitluecke_2 0 "keine Anzeige" 32 "Minimum";
 VAL_ 768 Zeitluecke_3 0 "keine Anzeige";
