@@ -347,7 +347,7 @@ class CarState(CarStateBase):
     psd_05_values = main_cp.vl["PSD_05"] if self.CP.networkLocation == NetworkLocation.gateway else {} # Predicative Street Data
     psd_06_values = pt_cp.vl["PSD_06"] # Predicative Street Data
     
-    self.speed_limit_mgr.update(psd_04_values, psd_05_values, psd_06_values, vze_01_values)
+    self.speed_limit_mgr.update(ret.vEgo, psd_04_values, psd_05_values, psd_06_values, vze_01_values)
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
