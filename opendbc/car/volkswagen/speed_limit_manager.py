@@ -29,7 +29,7 @@ class SpeedLimitManager:
     self.predicative_segments = {}
     self.current_predicative_segment = {"ID": NOT_SET, "Length": NOT_SET}
 
-  def update(self, current_speed, psd_04, psd_05, psd_06, vze):
+  def update(self, current_speed_ms, psd_04, psd_05, psd_06, vze):
     if not self.CP.flags & VolkswagenFlags.MEB:
       return
 
@@ -43,7 +43,7 @@ class SpeedLimitManager:
       self._receive_speed_factor_psd(psd_06)
       self._receive_speed_limit_psd_legal(psd_06)
       self._get_speed_limit_psd()
-      self._get_speed_limit_psd_next(current_speed)
+      self._get_speed_limit_psd_next(current_speed_ms)
     
   def get_speed_limit(self):
     if (self.predicative == True and self.v_limit_psd_next != NOT_SET):
@@ -168,7 +168,7 @@ class SpeedLimitManager:
       self.v_limit_receive = False
       self.v_limit_receive_segment_id = NOT_SET
 
-  def _get_speed_limit_psd_next(self, current_speed):
+  def _get_speed_limit_psd_next(self, current_speed_ms):
     """
     Setzt self.v_limit_psd_next, wenn ein zukünftiges Speed Limit rechtzeitig erreichbar ist.
     """
@@ -179,7 +179,7 @@ class SpeedLimitManager:
     if current_id == NOT_SET or length_remaining == NOT_SET:
       return
 
-    current_speed_psd = current_speed * CV.KPH_TO_MS
+    current_speed_psd = current_speed_ms
     total_dist = length_remaining
     visited = set()
     seg_id = current_id
