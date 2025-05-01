@@ -223,7 +223,7 @@ class SpeedLimitManager:
         delta_v = abs(current_speed_ms - target_speed)
         braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
 
-        if total_dist >= braking_distance:
+        if total_dist <= braking_distance:
           self.v_limit_psd_next = next_speed_kmh
         return
 
