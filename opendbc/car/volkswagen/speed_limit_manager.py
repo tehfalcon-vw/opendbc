@@ -37,16 +37,17 @@ class SpeedLimitManager:
     self._receive_speed_limit_vze(vze)
     
     # try reading speed from predicative street data
-    if psd_04 and psd_06 and psd_06:
-      self._receive_speed_limit_permission(psd_06)
-      self._build_predicative_segments(psd_04, psd_05, psd_06)
+    if psd_04 and psd_05 and psd_06:
       self._receive_speed_factor_psd(psd_06)
+      self._receive_current_position_psd(psd_05)
+      self._receive_speed_limit_permission(psd_06)
+      self._build_predicative_segments(psd_04, psd_06)
       self._receive_speed_limit_psd_legal(psd_06)
       self._get_speed_limit_psd()
       self._get_speed_limit_psd_next(current_speed_ms)
     
   def get_speed_limit(self):
-    if (self.predicative == True and self.v_limit_psd_next != NOT_SET):
+    if (self.predicative == True and self.v_limit_psd_next != NOT_SET and self.v_limit_psd_next < self.v_limit_output_last):
       v_limit_output = self.v_limit_psd_next
     elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
       v_limit_output = self.v_limit_vze
@@ -113,11 +114,10 @@ class SpeedLimitManager:
       self.current_predicative_segment["ID"] = psd_05["PSD_Pos_Segment_ID"]
       self.current_predicative_segment["Length"] = psd_05["PSD_Pos_Segmentlaenge"]
 
-  def _build_predicative_segments(self, psd_04, psd_05, psd_06):
+  def _build_predicative_segments(self, psd_04, psd_06):
     # Schritt 1: Segment erfassen/aktualisieren
     if (psd_04["PSD_ADAS_Qualitaet"] == 1 and
         psd_04["PSD_wahrscheinlichster_Pfad"] == 1 and
-        psd_04["PSD_Segment_Komplett"] == 1 and
         psd_04["PSD_Segment_ID"] != NOT_SET):
 
       segment_id = psd_04["PSD_Segment_ID"]
@@ -137,8 +137,8 @@ class SpeedLimitManager:
         }
 
     # Schritt 2: Alte Segmente bereinigen
-    if psd_05["PSD_Pos_Standort_Eindeutig"] == 1:
-      current_id = psd_05["PSD_Pos_Segment_ID"]
+    current_id = self.current_predicative_segment["ID"]
+    if current_id != NOT_SET:
       valid_ids = set()
       seg_id = current_id
       while seg_id in self.predicative_segments:
@@ -179,7 +179,7 @@ class SpeedLimitManager:
     if current_id == NOT_SET or length_remaining == NOT_SET:
       return
 
-    current_speed_psd = current_speed_ms
+    current_speed_psd = current_speed_ms * CV.MS_TO_KPH
     total_dist = length_remaining
     visited = set()
     seg_id = current_id
@@ -205,9 +205,9 @@ class SpeedLimitManager:
         break
 
       next_speed_kmh = next_seg.get("Speed")
-      if next_speed_kmh != NOT_SET and next_speed_kmh != current_speed_kmh:
+      if next_speed_kmh != NOT_SET and next_speed_kmh != current_speed_psd:
         target_speed = next_speed_kmh * CV.KPH_TO_MS
-        delta_v = abs(current_speed - target_speed)
+        delta_v = abs(current_speed_ms - target_speed)
         braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
 
         if total_dist >= braking_distance:
@@ -221,6 +221,7 @@ class SpeedLimitManager:
     seg_id = self.current_predicative_segment.get("ID")
     if seg_id == NOT_SET:
       self.v_limit_psd = NOT_SET
+      return
 
     seg = self.predicative_segments.get(seg_id)
     if seg and seg.get("Speed") != NOT_SET:
