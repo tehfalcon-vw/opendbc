@@ -186,7 +186,7 @@ class SpeedLimitManager:
     if current_id == NOT_SET or length_remaining == NOT_SET:
       return
 
-    current_speed_kmh = current_speed_ms * CV.MS_TO_KPH
+    current_speed_kmh = int(round(current_speed_ms * CV.MS_TO_KPH))
     total_dist = length_remaining
     visited = set()
     seg_id = current_id
