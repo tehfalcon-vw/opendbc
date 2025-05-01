@@ -84,13 +84,13 @@ class SpeedLimitManager:
       self.v_limit_receive = permission
       self.v_limit_receive_segment_id = psd_06["PSD_Sys_Segment_ID"] if permission else NOT_SET
 
-  def _convert_raw_speed_psd(self, raw_speed):
+  def _convert_raw_speed_psd(self, raw_speed, street_type):
     if 0 < raw_speed < 11: # 0 - 45 kph
       speed = (raw_speed - 1) * 5
     elif 11 <= raw_speed < 23: # 50 - 160 kph
       speed = 50 + (raw_speed - 11) * 10
     elif raw_speed == 23: # explicitly no legal speed limit 
-      if self.current_predicative_segment["StreetType"] == STREET_TYPE_HIGHWAY:
+      if street_type == STREET_TYPE_HIGHWAY:
         speed = self.v_limit_max
       else:
         speed = NOT_SET
@@ -168,7 +168,7 @@ class SpeedLimitManager:
       segment_id = self.v_limit_receive_segment_id
 
       if segment_id in self.predicative_segments:
-        speed = self._convert_raw_speed_psd(raw_speed)
+        speed = self._convert_raw_speed_psd(raw_speed, self.predicative_segments[segment_id]["StreetType"])
         self.predicative_segments[segment_id]["Speed"] = speed
         self.predicative_segments[segment_id]["QualityFlag"] = True
 
@@ -260,8 +260,9 @@ class SpeedLimitManager:
   def _receive_speed_limit_psd_legal(self, psd_06):
     if psd_06["PSD_06_Mux"] == 2:
       if psd_06["PSD_Ges_Typ"] == 2:
-        if ((psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_URBAN    and self.current_predicative_segment["StreetType"] == STREET_TYPE_URBAN) or
-            (psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_NONURBAN and self.current_predicative_segment["StreetType"] == STREET_TYPE_NONURBAN) or
-            (psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_HIGHWAY  and self.current_predicative_segment["StreetType"] == STREET_TYPE_HIGHWAY)):
+        street_type = self.current_predicative_segment["StreetType"]
+        if ((psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_URBAN    and street_type == STREET_TYPE_URBAN) or
+            (psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_NONURBAN and street_type == STREET_TYPE_NONURBAN) or
+            (psd_06["PSD_Ges_Gesetzlich_Kategorie"] == STREET_TYPE_HIGHWAY  and street_type == STREET_TYPE_HIGHWAY)):
           raw_speed = psd_06["PSD_Ges_Geschwindigkeit"]
-          self.v_limit_psd_legal = self._convert_raw_speed_psd(raw_speed)
+          self.v_limit_psd_legal = self._convert_raw_speed_psd(raw_speed, street_type)
