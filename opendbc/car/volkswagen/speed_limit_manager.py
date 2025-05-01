@@ -39,7 +39,7 @@ class SpeedLimitManager:
     # try reading speed from predicative street data
     if psd_04 and psd_06 and psd_06:
       self._receive_speed_limit_permission(psd_06)
-      self._build_predicative_segments(psd_04, psd_05, psd_06):
+      self._build_predicative_segments(psd_04, psd_05, psd_06)
       self._receive_speed_factor_psd(psd_06)
       self._receive_speed_limit_psd_legal(psd_06)
       self._get_speed_limit_psd()
