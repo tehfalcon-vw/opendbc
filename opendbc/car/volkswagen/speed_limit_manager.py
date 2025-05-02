@@ -1,3 +1,5 @@
+import time
+
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.volkswagen.values import VolkswagenFlags
 
@@ -9,6 +11,7 @@ STREET_TYPE_HIGHWAY = 3
 SANITY_CHECK_DIFF_PERCENT_LOWER = 30
 SPEED_LIMIT_UNLIMITED_VZE_MS = 144
 ACCELERATION_PREDICATIVE = 2
+SEGMENT_DECAY = 60
 
 
 class SpeedLimitManager:
@@ -120,6 +123,8 @@ class SpeedLimitManager:
         self.current_predicative_segment["StreetType"] = self.predicative_segments[current_segment]["StreetType"]
 
   def _build_predicative_segments(self, psd_04, psd_06):
+    now = time.time()
+    
     # Schritt 1: Segment erfassen/aktualisieren
     if (psd_04["PSD_ADAS_Qualitaet"] == 1 and
         psd_04["PSD_wahrscheinlichster_Pfad"] == 1 and
@@ -131,6 +136,7 @@ class SpeedLimitManager:
         seg["Length"] = psd_04["PSD_Segmentlaenge"]
         seg["StreetType"] = self._get_street_type(psd_04["PSD_Strassenkategorie"], psd_04["PSD_Bebauung"])
         seg["ID_Prev"] = psd_04["PSD_Vorgaenger_Segment_ID"]
+        seg["Timestamp"] = now
       else:
         self.predicative_segments[segment_id] = {
           "ID": segment_id,
@@ -138,7 +144,8 @@ class SpeedLimitManager:
           "StreetType": self._get_street_type(psd_04["PSD_Strassenkategorie"], psd_04["PSD_Bebauung"]),
           "ID_Prev": psd_04["PSD_Vorgaenger_Segment_ID"],
           "Speed": NOT_SET,
-          "QualityFlag": False
+          "QualityFlag": False,
+          "Timestamp": now
         }
 
     # Schritt 2: Alte Segmente bereinigen
@@ -147,8 +154,11 @@ class SpeedLimitManager:
       valid_ids = set()
       seg_id = current_id
       while seg_id in self.predicative_segments:
+        seg = self.predicative_segments[seg_id]
+        if now - seg.get("Timestamp", 0) > SEGMENT_DECAY:
+          break  # Segment ist zu alt – Abbruch der Kette
         valid_ids.add(seg_id)
-        seg_id = self.predicative_segments[seg_id].get("ID_Prev")
+        seg_id = seg.get("ID_Prev")
         if seg_id is None or seg_id in valid_ids:
           break
       self.predicative_segments = {
