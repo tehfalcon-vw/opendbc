@@ -530,8 +530,9 @@ class CarState(CarStateBase):
     main_messages = []
     if CP.networkLocation == NetworkLocation.gateway:
       main_messages += MebExtraSignals.main_messages
-      if CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT:
-        main_messages += MebExtraSignals.psd_messages
+      
+    if CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT:
+      main_messages += MebExtraSignals.psd_messages
 
     cam_messages = [
       # sig_address, frequency
