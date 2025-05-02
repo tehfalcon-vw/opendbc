@@ -184,6 +184,7 @@ class VolkswagenFlags(IntFlag):
   # Detected flags
   STOCK_HCA_PRESENT = 1
   STOCK_KLR_PRESENT = 8
+  STOCK_PSD_PRESENT = 16
 
   # Static flags
   PQ = 2
