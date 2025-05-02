@@ -238,7 +238,7 @@ class CarController(CarControllerBase):
     # **** Blinker Controls ************************************************** #
     
     if self.frame % 50 == 0:
-      can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker=CC.leftBlinker, right_blinker=CC.rightBlinker))
+      can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker=True, right_blinker=CC.rightBlinker))
 
     # **** Cruise Controls ************************************************** #
     
