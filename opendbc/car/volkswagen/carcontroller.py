@@ -235,6 +235,11 @@ class CarController(CarControllerBase):
         #else: # this else statement and following CAN command is for personal purposes: non KLR car with coded KLR for testing
         #  can_sends.append(mebcan.create_hands_on_wheel_control(self.packer_pt, self.ext_bus))
 
+    # **** Blinker Controls ************************************************** #
+    
+    if self.frame % 50 == 0:
+      can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker=CC.leftBlinker, right_blinker=CC.rightBlinker))
+
     # **** Cruise Controls ************************************************** #
     
     self.long_cruise_control = True if CS.acc_type == 3 and self.CP.flags & VolkswagenFlags.PQ else False
