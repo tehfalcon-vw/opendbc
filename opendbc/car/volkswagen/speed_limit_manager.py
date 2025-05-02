@@ -29,11 +29,9 @@ class SpeedLimitManager:
     self.current_predicative_segment = {"ID": NOT_SET, "Length": NOT_SET, "Speed": NOT_SET, "StreetType": NOT_SET}
 
   def update(self, current_speed_ms, psd_04, psd_05, psd_06, vze):
-    if not self.CP.flags & VolkswagenFlags.MEB:
-      return
-
     # try reading speed form traffic sign recognition
-    self._receive_speed_limit_vze(vze)
+    if vze and self.CP.flags & VolkswagenFlags.MEB:
+      self._receive_speed_limit_vze_meb(vze)
     
     # try reading speed from predicative street data
     if psd_04 and psd_05 and psd_06:
@@ -99,7 +97,7 @@ class SpeedLimitManager:
       
     return speed * self.v_limit_speed_factor
 
-  def _receive_speed_limit_vze(self, vze):
+  def _receive_speed_limit_vze_meb(self, vze):
     if vze["VZE_Verkehrszeichen_1_Typ"] == 0:
       v_limit_vze = int(round(vze["VZE_Verkehrszeichen_1"]))# main traffic sign
       if vze["VZE_Verkehrszeichen_Einheit"] == 1:
