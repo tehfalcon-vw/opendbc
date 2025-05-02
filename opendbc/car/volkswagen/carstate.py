@@ -595,8 +595,6 @@ class MebExtraSignals:
     ("MEB_HVEM_03", 2),
     ("BMS_04", 2),
     ("DCDC_03", 2),
-    ("PSD_04", 7),
-    ("PSD_05", 7),
   ]
   psd_messages = [
     ("PSD_04", 7),
