@@ -362,6 +362,8 @@ class CarState(CarStateBase):
     ret.espDisabled = bool(pt_cp.vl["ESP_21"]["ESP_Tastung_passiv"]) # this is also true for ESC Sport mode
     ret.espActive = bool(pt_cp.vl["ESP_21"]["ESP_Eingriff"])
 
+    self.ea_hud_stock_values = cam_cp.vl["EA_02"]
+
     ret.fuelGauge = pt_cp.vl["Motor_16"]["MO_Energieinhalt_BMS"]
 
     # EV battery details
@@ -538,7 +540,8 @@ class CarState(CarStateBase):
       # sig_address, frequency
       ("LDW_02", 10),     # From R242 Driver assistance camera
       ("TA_01", 10),      # From R242 Driver assistance camera (Travel Assist)
-      ("MEB_VZE_01", 5),      # From R242 Driver assistance camera (Traffic Sign Detection)
+      ("MEB_VZE_01", 5),  # From R242 Driver assistance camera (Traffic Sign Detection)
+      ("EA_02", 2),       # From R242 Driver assistance camera (Emergency Assist)
     ]
     
     if CP.networkLocation == NetworkLocation.gateway:
