@@ -46,6 +46,27 @@ def create_eps_update(packer, bus, eps_stock_values, ea_simulated_torque):
   return packer.make_can_msg("LH_EPS_03", bus, values)
 
 
+def create_blinker_control(packer, bus, ea_hud_stock_values, left_blinker, right_blinker, warn_blinker):
+  values = {s: ea_hud_stock_values[s] for s in [
+    "EA_Texte",
+    "ACF_Lampe_Hands_Off",
+    "EA_Infotainment_Anf",
+    "EA_Tueren_Anf",
+    "EA_Innenraumlicht_Anf",
+    "zFAS_Warnblinken",
+    "STP_Primaeranz",
+    "EA_Bremslichtblinken",
+    "EA_Blinken",
+    "EA_Unknown",
+  ]}
+
+  values.update({
+    "EA_Blinken": 1 if left_blinker else (2 if right_blinker else (3 if warn_blinker else ea_hud_stock_values["EA_Blinken"])),
+  })
+
+  return packer.make_can_msg("EA_02", bus, values)
+
+
 def create_lka_hud_control(packer, bus, ldw_stock_values, lat_active, steering_pressed, hud_alert, hud_control, sound_alert):
   display_mode = 1 if lat_active else 0 # travel assist style showing yellow lanes when op is active
   
