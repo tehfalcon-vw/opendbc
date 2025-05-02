@@ -343,9 +343,9 @@ class CarState(CarStateBase):
 
     # Speed Limit
     vze_01_values = cam_cp.vl["MEB_VZE_01"] # Traffic Sign Recognition
-    psd_04_values = main_cp.vl["PSD_04"] if self.CP.networkLocation == NetworkLocation.gateway else {} # Predicative Street Data
-    psd_05_values = main_cp.vl["PSD_05"] if self.CP.networkLocation == NetworkLocation.gateway else {} # Predicative Street Data
-    psd_06_values = pt_cp.vl["PSD_06"] # Predicative Street Data
+    psd_04_values = main_cp.vl["PSD_04"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {} # Predicative Street Data
+    psd_05_values = main_cp.vl["PSD_05"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {}
+    psd_06_values = main_cp.vl["PSD_06"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {}
     
     self.speed_limit_mgr.update(ret.vEgo, psd_04_values, psd_05_values, psd_06_values, vze_01_values)
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
@@ -519,7 +519,6 @@ class CarState(CarStateBase):
       ("Gateway_73", 20),
       ("SAM_01", 5),
       ("Motor_51", 50),
-      ("PSD_06", 7),
     ]
       
     if CP.networkLocation == NetworkLocation.fwdCamera:
@@ -531,6 +530,8 @@ class CarState(CarStateBase):
     main_messages = []
     if CP.networkLocation == NetworkLocation.gateway:
       main_messages += MebExtraSignals.main_messages
+      if CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT:
+        main_messages += MebExtraSignals.psd_messages
 
     cam_messages = [
       # sig_address, frequency
@@ -595,4 +596,9 @@ class MebExtraSignals:
     ("DCDC_03", 2),
     ("PSD_04", 7),
     ("PSD_05", 7),
+  ]
+  psd_messages = [
+    ("PSD_04", 7),
+    ("PSD_05", 7),
+    ("PSD_06", 7),
   ]
