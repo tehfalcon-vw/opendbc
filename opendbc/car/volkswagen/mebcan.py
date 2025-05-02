@@ -46,7 +46,7 @@ def create_eps_update(packer, bus, eps_stock_values, ea_simulated_torque):
   return packer.make_can_msg("LH_EPS_03", bus, values)
 
 
-def create_blinker_control(packer, bus, ea_hud_stock_values, left_blinker, right_blinker, warn_blinker):
+def create_blinker_control(packer, bus, ea_hud_stock_values, left_blinker=False, right_blinker=False, warn_blinker=False):
   values = {s: ea_hud_stock_values[s] for s in [
     "EA_Texte",
     "ACF_Lampe_Hands_Off",
