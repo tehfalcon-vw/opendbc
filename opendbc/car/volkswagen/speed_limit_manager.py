@@ -11,9 +11,9 @@ STREET_TYPE_HIGHWAY = 3
 SANITY_CHECK_DIFF_PERCENT_LOWER = 30
 SPEED_LIMIT_UNLIMITED_VZE_MS = 144
 ACCELERATION_PREDICATIVE = 2
-SEGMENT_DECAY = 30
+SEGMENT_DECAY = 10
 
-
+# this so invalidation mechanism found -> use decay, quality flag is worthless at the moment
 class SpeedLimitManager:
   def __init__(self, car_params, speed_limit_max_kph=SPEED_SUGGESTED_MAX_HIGHWAY_GER_KPH, predicative=False):
     self.CP = car_params
@@ -48,7 +48,7 @@ class SpeedLimitManager:
       self._get_speed_limit_psd_next(current_speed_ms)
     
   def get_speed_limit(self):
-    if (self.predicative == True and self.v_limit_psd_next != NOT_SET and self.v_limit_psd_next < self.v_limit_output_last):
+    if (self.predicative == True and self.v_limit_psd_next != NOT_SET and self.v_limit_psd_next <= self.v_limit_output_last):
       v_limit_output = self.v_limit_psd_next
     elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
       v_limit_output = self.v_limit_vze
@@ -118,14 +118,15 @@ class SpeedLimitManager:
   def _refresh_current_segment(self):
     current_segment = self.current_predicative_segment["ID"]
     if current_segment != NOT_SET:
-      if current_segment in self.predicative_segments:
-        self.current_predicative_segment["Speed"] = self.predicative_segments[current_segment]["Speed"]
-        self.current_predicative_segment["StreetType"] = self.predicative_segments[current_segment]["StreetType"]
+      seg = self.predicative_segments.get(current_segment)
+        if seg:
+          self.current_predicative_segment["Speed"] = self.predicative_segments[current_segment]["Speed"]
+          self.current_predicative_segment["StreetType"] = self.predicative_segments[current_segment]["StreetType"]
 
   def _build_predicative_segments(self, psd_04, psd_06):
     now = time.time()
     
-    # Schritt 1: Segment erfassen/aktualisieren
+    # Segment erfassen/aktualisieren
     if (psd_04["PSD_ADAS_Qualitaet"] == 1 and
         psd_04["PSD_wahrscheinlichster_Pfad"] == 1 and
         psd_04["PSD_Segment_ID"] != NOT_SET):
@@ -156,7 +157,7 @@ class SpeedLimitManager:
         if sid >= current_id or now - seg.get("Timestamp", 0) <= SEGMENT_DECAY
       }
 
-    # Schritt 3: Geschwindigkeit setzen
+    # Geschwindigkeit setzen
     if (self.v_limit_receive and
         psd_06["PSD_06_Mux"] == 2 and
         psd_06["PSD_Ges_Typ"] == 1 and
