@@ -210,7 +210,7 @@ class SpeedLimitManager:
       if not next_seg.get("QualityFlag", False):
         break
 
-      next_speed_kmh = next_seg.get("Speed")
+      next_speed_kmh = int(round(next_seg.get("Speed") * CV.MS_TO_KPH))
       
       if next_speed_kmh == current_speed_kmh:
         total_dist += next_seg.get("Length", 0)
@@ -218,7 +218,7 @@ class SpeedLimitManager:
         continue
       
       if next_speed_kmh != NOT_SET and next_speed_kmh != current_speed_kmh:
-        target_speed = next_speed_kmh * CV.KPH_TO_MS
+        target_speed = next_speed_kmh
         delta_v = abs(current_speed_ms - target_speed)
         braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
 
