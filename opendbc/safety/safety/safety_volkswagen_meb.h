@@ -254,7 +254,7 @@ static bool volkswagen_meb_tx_hook(const CANPacket_t *to_send) {
   // PANDA DATA is a custom CAN messages for internal use only, transferring roll from OP for safety checks
   if (addr == MSG_Panda_Data_01) {
     float current_roll = (GET_BYTE(to_send, 0U) | (GET_BYTE(to_send, 1U) << 8)) * 0.0001 - 3.1416;
-    int roll_scaled = current_roll * ROLL_SCALE;
+    int roll_scaled = (int)(current_roll * ROLL_SCALE);
     update_sample(&roll, roll_scaled);
     tx = false;
   }
