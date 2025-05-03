@@ -119,9 +119,9 @@ class SpeedLimitManager:
     current_segment = self.current_predicative_segment["ID"]
     if current_segment != NOT_SET:
       seg = self.predicative_segments.get(current_segment)
-        if seg:
-          self.current_predicative_segment["Speed"] = self.predicative_segments[current_segment]["Speed"]
-          self.current_predicative_segment["StreetType"] = self.predicative_segments[current_segment]["StreetType"]
+      if seg:
+        self.current_predicative_segment["Speed"] = self.predicative_segments[current_segment]["Speed"]
+        self.current_predicative_segment["StreetType"] = self.predicative_segments[current_segment]["StreetType"]
 
   def _build_predicative_segments(self, psd_04, psd_06):
     now = time.time()
