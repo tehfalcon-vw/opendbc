@@ -197,7 +197,7 @@ class SpeedLimitManager:
   
     best_result = {"limit": NOT_SET, "dist": float('inf')}
 
-    self._dfs(current_id, length_remaining, current_speed_ms, best_result)
+    self._dfs(current_id, length_remaining, set(), current_speed_ms, best_result)
     self.v_limit_psd_next = best_result["limit"]
 
   def _get_speed_limit_psd(self):
