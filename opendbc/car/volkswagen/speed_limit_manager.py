@@ -154,7 +154,7 @@ class SpeedLimitManager:
     if current_id != NOT_SET:
       self.predicative_segments = {
         sid: seg for sid, seg in self.predicative_segments.items()
-        if sid >= current_id or now - seg.get("Timestamp", 0) <= SEGMENT_DECAY
+        if now - seg.get("Timestamp", 0) <= SEGMENT_DECAY
       }
 
     # Geschwindigkeit setzen
