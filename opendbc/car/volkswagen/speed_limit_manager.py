@@ -162,48 +162,43 @@ class SpeedLimitManager:
         self.predicative_segments[segment_id]["Speed"] = speed
         self.predicative_segments[segment_id]["QualityFlag"] = True
 
+  def _dfs(self, seg_id, total_dist, visited, current_speed_ms, best_result):
+    if seg_id in visited:
+      return
+    visited.add(seg_id)
+  
+    seg = self.predicative_segments.get(seg_id)
+    if not seg:
+      return
+
+    current_speed_kmh = int(round(current_speed_ms * CV.MS_TO_KPH))
+    speed_kmh = seg.get("Speed", NOT_SET)
+    if seg.get("QualityFlag", False) and speed_kmh != NOT_SET and speed_kmh != current_speed_kmh:
+      target_speed = speed_kmh
+      delta_v = abs(current_speed_ms - target_speed * CV.KPH_TO_MS)
+      braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
+  
+      if total_dist <= braking_distance and total_dist < best_result["dist"]:
+        best_result["limit"] = speed_kmh
+        best_result["dist"] = total_dist
+  
+    for next_id, s in self.predicative_segments.items():
+      if s.get("ID_Prev") == seg_id:
+        next_length = s.get("Length", 0)
+        self._dfs(next_id, total_dist + next_length, visited.copy(), current_speed_ms, best_result)
+  
   def _get_speed_limit_psd_next(self, current_speed_ms):
     current_id = self.current_predicative_segment.get("ID")
     length_remaining = self.current_predicative_segment.get("Length")
     self.v_limit_psd_next = NOT_SET
-
+  
     if current_id == NOT_SET or length_remaining == NOT_SET:
       return
+  
+    best_result = {"limit": NOT_SET, "dist": float('inf')}
 
-    current_speed_kmh = int(round(current_speed_ms * CV.MS_TO_KPH))
-    total_dist = length_remaining
-    visited = set()
-    seg_id = current_id
-
-    while seg_id and seg_id not in visited:
-      visited.add(seg_id)
-
-      # Finde nächstes Segment in Fahrtrichtung (ID_Prev == aktuelles Segment)
-      next_id = None
-      for candidate_id, seg in self.predicative_segments.items():
-        if seg.get("ID_Prev") == seg_id:
-          next_id = candidate_id
-          break
-
-      if not next_id or next_id in visited:
-        break
-
-      next_seg = self.predicative_segments.get(next_id)
-      if not next_seg:
-        break
-
-      if next_seg.get("Speed", NOT_SET) != NOT_SET and next_seg.get("QualityFlag", False):
-        next_speed_kmh = next_seg["Speed"]
-        if next_speed_kmh != current_speed_kmh:
-          target_speed = next_speed_kmh
-          delta_v = abs(current_speed_kmh - target_speed) * CV.KPH_TO_MS
-          braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
-
-          if total_dist <= braking_distance:
-            self.v_limit_psd_next = next_speed_kmh
-            return  # Limit ist erreichbar – fertig
-
-      seg_id = next_id
+    self._dfs(current_id, length_remaining, current_speed_ms, best_result)
+    self.v_limit_psd_next = best_result["limit"]
 
   def _get_speed_limit_psd(self):
     seg_id = self.current_predicative_segment.get("ID")
