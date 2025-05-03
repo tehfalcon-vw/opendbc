@@ -11,7 +11,7 @@ STREET_TYPE_HIGHWAY = 3
 SANITY_CHECK_DIFF_PERCENT_LOWER = 30
 SPEED_LIMIT_UNLIMITED_VZE_MS = 144
 ACCELERATION_PREDICATIVE = 2
-SEGMENT_DECAY = 60
+SEGMENT_DECAY = 30
 
 
 class SpeedLimitManager:
@@ -151,19 +151,9 @@ class SpeedLimitManager:
     # Schritt 2: Alte Segmente bereinigen
     current_id = self.current_predicative_segment["ID"]
     if current_id != NOT_SET:
-      valid_ids = set()
-      seg_id = current_id
-      while seg_id in self.predicative_segments:
-        seg = self.predicative_segments[seg_id]
-        if now - seg.get("Timestamp", 0) > SEGMENT_DECAY:
-          break  # Segment ist zu alt – Abbruch der Kette
-        valid_ids.add(seg_id)
-        seg_id = seg.get("ID_Prev")
-        if seg_id is None or seg_id in valid_ids:
-          break
       self.predicative_segments = {
         sid: seg for sid, seg in self.predicative_segments.items()
-        if sid in valid_ids
+        if sid >= current_id or now - seg.get("Timestamp", 0) <= SEGMENT_DECAY
       }
 
     # Schritt 3: Geschwindigkeit setzen
