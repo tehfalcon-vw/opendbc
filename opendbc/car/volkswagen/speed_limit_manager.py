@@ -152,10 +152,10 @@ class SpeedLimitManager:
     if (psd_06["PSD_06_Mux"] == 2 and
         psd_06["PSD_Ges_Typ"] == 1 and
         psd_06["PSD_Ges_Gesetzlich_Kategorie"] == 0 and
-        psd_06["PSD_Ges_Segment_ID"] != NOT_SET ):
+        psd_06["PSD_Ges_Segment_ID"] != NOT_SET):
 
       raw_speed = psd_06["PSD_Ges_Geschwindigkeit"]
-      segment_id = self.v_limit_receive_segment_id
+      segment_id = psd_06["PSD_Ges_Segment_ID"]
 
       if segment_id in self.predicative_segments:
         speed = self._convert_raw_speed_psd(raw_speed, self.predicative_segments[segment_id]["StreetType"])
