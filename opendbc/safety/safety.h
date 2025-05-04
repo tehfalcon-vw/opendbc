@@ -921,12 +921,10 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
                   max_limit_check(desired_curvature, max_inactive_curvature, min_inactive_curvature));
   }
 
-  // steer power is still allowed to decrease to zero monotonously
-  violation |= !is_lat_active() && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
-  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power != 0;
-
-  // No curvature control allowed when controls are not allowed
-  violation |= !is_lat_active() && steer_control_enabled;
+  violation |= desired_steer_power > 0 && !steer_control_enabled;
+  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
+  violation |= !is_lat_active() && !steer_control_enabled && desired_steer_power != 0;
+  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power == 0;
 
   desired_curvature_last = desired_curvature;
   desired_steer_power_last = desired_steer_power;
