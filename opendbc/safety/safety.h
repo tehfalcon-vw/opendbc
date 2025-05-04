@@ -859,11 +859,11 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   float ts_elapsed = get_ts_elapsed(ts, ts_curvature_check_last) / 1e6f;
 
   float speed = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
-  float jerk = MAX_LATERAL_JERK / (speed * speed);  // rad/m/s
+  float curvature_rate_limit = MAX_LATERAL_JERK / (speed * speed);  // rad/m/s
 
   float curvature_last = ((float)desired_curvature_last) / limits.curvature_to_can;
-  float curvature_up = curvature_last + jerk * ts_elapsed;
-  float curvature_down  = curvature_last - jerk * ts_elapsed;
+  float curvature_up = curvature_last + curvature_rate_limit * ts_elapsed;
+  float curvature_down  = curvature_last - curvature_rate_limit * ts_elapsed;
 
   int highest_desired_curvature = (int)(curvature_up * limits.curvature_to_can);
   int lowest_desired_curvature  = (int)(curvature_down  * limits.curvature_to_can);
