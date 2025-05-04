@@ -154,6 +154,7 @@ static const AngleSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
   //.enforce_angle_error = true, // to allow some difference for our power control handling at the same time
   .angle_is_curvature = true, // our rates are higher than ISO and are useless, ISO is enforced in OP controls and our rates never reached
   .inactive_angle_is_zero = true,
+  .roll_to_can = 10000,
   .use_roll_data = true,
 };
 
@@ -253,9 +254,14 @@ static bool volkswagen_meb_tx_hook(const CANPacket_t *to_send) {
 
   // PANDA DATA is a custom CAN messages for internal use only, transferring roll from OP for safety checks
   if (addr == MSG_Panda_Data_01) {
-    float current_roll = (GET_BYTE(to_send, 0U) | (GET_BYTE(to_send, 1U) << 8)) * 0.0001 - 3.1416;
-    int roll_scaled = (int)(current_roll * ROLL_SCALE);
-    update_sample(&roll, roll_scaled);
+    int current_roll = (GET_BYTE(to_send, 0U) | ((GET_BYTE(to_send, 1U) & 0x7F) << 8));
+
+    bool current_roll_sign = GET_BIT(to_push, 15U);
+    if (!current_roll_sign) {
+      current_roll *= -1;
+    }
+    
+    update_sample(&roll, current_roll);
     tx = false;
   }
 
