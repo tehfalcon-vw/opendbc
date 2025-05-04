@@ -47,12 +47,13 @@ class SpeedLimitManager:
   def get_speed_limit(self):
     if (self.predicative == True and self.v_limit_psd_next != NOT_SET and self.v_limit_psd_next <= self.v_limit_output_last):
       v_limit_output = self.v_limit_psd_next
-    elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
-      v_limit_output = self.v_limit_vze
     elif self.v_limit_psd != NOT_SET:
       v_limit_output = self.v_limit_psd
     else:
       v_limit_output = self.v_limit_psd_legal
+
+    elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
+      v_limit_output = self.v_limit_vze
 
     if v_limit_output > self.v_limit_max:
       v_limit_output = self.v_limit_max
@@ -92,7 +93,8 @@ class SpeedLimitManager:
     return int(round(speed * self.v_limit_speed_factor_psd))
 
   def _receive_speed_limit_vze_meb(self, vze):
-    if vze["VZE_Verkehrszeichen_1_Typ"] == 0:
+    if (vze["VZE_Verkehrszeichen_1_Typ"] == 0 and
+        vze["VZE_Zeichen_01_Kamera"] == 1):
       v_limit_vze = int(round(vze["VZE_Verkehrszeichen_1"]))# main traffic sign
       if vze["VZE_Verkehrszeichen_Einheit"] == 1:
         v_limit_vze *= 1
@@ -171,11 +173,9 @@ class SpeedLimitManager:
     if not seg:
       return
 
-    current_speed_kmh = int(round(current_speed_ms * CV.MS_TO_KPH))
     speed_kmh = seg.get("Speed", NOT_SET)
-    if seg.get("QualityFlag", False) and speed_kmh != NOT_SET and speed_kmh != current_speed_kmh:
-      target_speed = speed_kmh
-      delta_v = abs(current_speed_ms - target_speed * CV.KPH_TO_MS)
+    if seg.get("QualityFlag", False) and speed_kmh != NOT_SET:
+      delta_v = abs(current_speed_ms - speed_kmh * CV.KPH_TO_MS)
       braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
   
       if total_dist <= braking_distance and total_dist < best_result["dist"]:
@@ -198,7 +198,8 @@ class SpeedLimitManager:
     best_result = {"limit": NOT_SET, "dist": float('inf')}
 
     self._dfs(current_id, length_remaining, set(), current_speed_ms, best_result)
-    self.v_limit_psd_next = best_result["limit"]
+    if best_result["limit"] != NOT_SET:
+      self.v_limit_psd_next = best_result["limit"]
 
   def _get_speed_limit_psd(self):
     seg_id = self.current_predicative_segment.get("ID")
