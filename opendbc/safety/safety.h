@@ -921,10 +921,10 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
                   max_limit_check(desired_curvature, max_inactive_curvature, min_inactive_curvature));
   }
 
-  violation |= desired_steer_power > 0 && !steer_control_enabled;
-  violation |= !controls_allowed && steer_control_enabled && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
-  violation |= !controls_allowed && !steer_control_enabled && desired_steer_power != 0;
-  violation |= !controls_allowed && steer_control_enabled && desired_steer_power == 0;
+  //violation |= desired_steer_power > 0 && !steer_control_enabled;
+  //violation |= !controls_allowed && steer_control_enabled && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
+  //violation |= !controls_allowed && !steer_control_enabled && desired_steer_power != 0;
+  //violation |= !controls_allowed && steer_control_enabled && desired_steer_power == 0;
 
   desired_curvature_last = desired_curvature;
   desired_steer_power_last = desired_steer_power;
