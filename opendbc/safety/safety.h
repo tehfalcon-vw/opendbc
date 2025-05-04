@@ -755,7 +755,7 @@ bool steer_torque_cmd_checks(int desired_torque, int steer_req, const TorqueStee
 bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const AngleSteeringLimits limits) {
   bool violation = false;
 
-  if (controls_allowed && steer_control_enabled) {
+  if (is_lat_active() && steer_control_enabled) {
     // convert floating point angle rate limits to integers in the scale of the desired angle on CAN,
     // add 1 to not false trigger the violation. also fudge the speed by 1 m/s so rate limits are
     // always slightly above openpilot's in case we read an updated speed in between angle commands
@@ -842,7 +842,7 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
   }
 
   // No angle control allowed when controls are not allowed
-  violation |= !controls_allowed && steer_control_enabled;
+  violation |= !is_lat_active() && steer_control_enabled;
 
   return violation;
 }
@@ -892,7 +892,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
     }
 
-      // Allow small tolerance by using minimum speed and rounding curvature up
+    // Allow small tolerance by using minimum speed and rounding curvature up
     const float speed_lower = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
     const float speed_upper = MAX(vehicle_speed.max / VEHICLE_SPEED_FACTOR, 1.0);
     const int max_curvature_upper = (max_lat_accel / (speed_lower * speed_lower) * limits.curvature_to_can) + 1.;
@@ -932,9 +932,9 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   }
 
   violation |= desired_steer_power > 0 && !steer_control_enabled;
-  violation |= !controls_allowed && steer_control_enabled && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
-  violation |= !controls_allowed && !steer_control_enabled && desired_steer_power != 0;
-  violation |= !controls_allowed && steer_control_enabled && desired_steer_power == 0;
+  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
+  violation |= !is_lat_active() && !steer_control_enabled && desired_steer_power != 0;
+  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power == 0;
 
   desired_curvature_last = desired_curvature;
   desired_steer_power_last = desired_steer_power;
