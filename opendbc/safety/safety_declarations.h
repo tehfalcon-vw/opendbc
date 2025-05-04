@@ -134,6 +134,8 @@ typedef struct {
 
   const float roll_to_can;
   const bool use_roll_data;              // if true: use roll data from OP, false: use static roll (upstream logic)
+  const int driver_torque_allowance;     // torque driver input detection limit
+  const bool driver_torque_override;     // enables torque driver override safety check
 } AngleSteeringLimits;
 
 typedef struct {
