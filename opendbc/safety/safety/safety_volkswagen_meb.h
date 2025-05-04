@@ -126,21 +126,17 @@ static safety_config volkswagen_meb_init(uint16_t param) {
 
 // lateral limits for curvature
 static const AngleSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
-  // keep in mind, we do have a false tx block problem with same limits as in opendbc values, have them a little bit higher +0.0002 
-  // for FORD enforce_angle_error is active with margin of 0.002 which could solve the issue, we have here
   .max_angle = 29105, // 0.195 rad/m
   .angle_deg_to_can = 149253.7313, // 1 / 6.7e-6 rad/m to can
   .angle_rate_up_lookup = {
     {5., 25., 25.},
-    {0.0017, 0.00035, 0.00035} // in rad/m
+    {0.0015, 0.00015, 0.00015} // in rad/m
   },
   .angle_rate_down_lookup = {
     {5., 25., 25.},
-    {0.0022, 0.00055, 0.00055}
+    {0.002, 0.00035, 0.00035}
   },
-  //.max_angle_error = ,         // THIS WOULD ALLOW MORE ROOM FOR OUR RATE LIMITS see comment above, but we want correct safety limit checks? and
-  //.enforce_angle_error = true, // to allow some difference for our power control handling at the same time
-  .angle_is_curvature = true, // our rates are higher than ISO and are useless, ISO is enforced in OP controls and our rates never reached
+  .angle_is_curvature = true,
   .inactive_angle_is_zero = true,
   .roll_to_can = 10000,
   .use_roll_data = true,
