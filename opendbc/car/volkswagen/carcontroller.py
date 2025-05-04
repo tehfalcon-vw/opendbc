@@ -94,7 +94,7 @@ class CarController(CarControllerBase):
     self.apply_curvature_last = 0.
     self.steering_power_last = 0
     self.accel_last = 0
-    self.long_jerk_last = 0
+    #self.long_jerk_last = 0
     self.long_override_counter = 0
     self.long_disabled_counter = 0
     self.gra_acc_counter_last = None
@@ -218,27 +218,19 @@ class CarController(CarControllerBase):
         can_sends.append(self.CCS.create_eps_update(self.packer_pt, CANBUS.cam, CS.eps_stock_values, ea_simulated_torque))
 
     # Emergency Assist intervention
-    if self.CP.flags & VolkswagenFlags.MEB:
-      # Method 1: send default EA values
-      # by jyoung anti EA intervention, send default values
-      #if self.frame % 2 == 0:
-      #  can_sends.append(mebcan.create_ea_control(self.packer_pt, CANBUS.pt))
-      #if self.frame % 50 == 0:
-      #  can_sends.append(mebcan.create_ea_hud(self.packer_pt, CANBUS.pt))
-
-      # Method 2: send capacitive steering wheel touched
-      # propably EA could be stock activated only for cars equipped with capacitive steering wheel
-      # (also stock long does resume from stop as long as hands on is detected)
+    if self.CP.flags & VolkswagenFlags.MEB and self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT:
+      # send capacitive steering wheel touched
+      # propably EA is stock activated only for cars equipped with capacitive steering wheel
+      # (also stock long does resume from stop as long as hands on is detected additionally to OP resume spam)
       if self.frame % 6 == 0:
-        if self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT:
-          can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.ext_bus, CC.enabled, CS.klr_stock_values))
-        #else: # this else statement and following CAN command is for personal purposes: non KLR car with coded KLR for testing
-        #  can_sends.append(mebcan.create_hands_on_wheel_control(self.packer_pt, self.ext_bus))
+        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.ext_bus, CC.enabled, CS.klr_stock_values))
+          
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
-    if self.frame % 2 == 0:
-      can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker=CC.leftBlinker, right_blinker=CC.rightBlinker))
+    if self.CP.flags & VolkswagenFlags.MEB:
+      if self.frame % 2 == 0:
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker=CC.leftBlinker, right_blinker=CC.rightBlinker))
 
     # **** Cruise Controls ************************************************** #
     
@@ -263,24 +255,24 @@ class CarController(CarControllerBase):
           #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
 
-          # 1 frame of long_override_begin is enough, but lower the possibility of panda safety blocking it for now until we adapt panda safety correctly
+          # 1 frame of long_override_begin is enough, but lower the possibility of panda safety blocking it
           long_override = CC.cruiseControl.override or CS.out.gasPressed
           self.long_override_counter = min(self.long_override_counter + 1, 5) if long_override else 0
           long_override_begin = long_override and self.long_override_counter < 5
 
-          # 1 frame of long_disabling is enough, but lower the possibility of panda safety blocking it for now until we adapt panda safety correctly
+          # 1 frame of long_disabling is enough, but lower the possibility of panda safety blocking it
           self.long_disabled_counter = min(self.long_disabled_counter + 1, 5) if not CC.enabled else 0
           long_disabling = not CC.enabled and self.long_disabled_counter < 5
 
-          upper_control_limit, lower_control_limit = get_long_control_limits(CS.out.vEgoRaw, hud_control.setSpeed, hud_control.leadDistance) if CC.enabled else (0, 0)
-          upper_jerk, lower_jerk, self.long_jerk_last = get_long_jerk_limits(accel, self.accel_last, CS.out.aEgo, DT_CTRL * self.CCP.ACC_CONTROL_STEP, self.long_jerk_last, long_override) if CC.enabled else (0, 0, 0)
+          #upper_control_limit, lower_control_limit = get_long_control_limits(CS.out.vEgoRaw, hud_control.setSpeed, hud_control.leadDistance) if CC.enabled else (0, 0)
+          #upper_jerk, lower_jerk, self.long_jerk_last = get_long_jerk_limits(accel, self.accel_last, CS.out.aEgo, DT_CTRL * self.CCP.ACC_CONTROL_STEP, self.long_jerk_last, long_override) if CC.enabled else (0, 0, 0)
         
           acc_control = self.CCS.acc_control_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled,
                                                    CS.esp_hold_confirmation, long_override)          
           acc_hold_type = self.CCS.acc_hold_type(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled, starting, stopping,
                                                  CS.esp_hold_confirmation, long_override, long_override_begin, long_disabling)
           can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, CANBUS.pt, CS.acc_type, CC.enabled,
-                                                             upper_jerk, lower_jerk, upper_control_limit, lower_control_limit,
+                                                             4.0, 4.0, 0.2, 0.2, #upper_jerk, lower_jerk, upper_control_limit, lower_control_limit,
                                                              accel, acc_control, acc_hold_type, stopping, starting, CS.esp_hold_confirmation,
                                                              long_override, CS.travel_assist_available))
           self.accel_last = accel

@@ -131,8 +131,19 @@ typedef struct {
   const bool angle_is_curvature;         // if true, we can apply max lateral acceleration limits
   const bool enforce_angle_error;        // enables max_angle_error check
   const bool inactive_angle_is_zero;     // if false, enforces angle near meas when disabled (default)
-  const bool use_roll_data;              // if true: use roll data from OP, false: use static roll (upstream logic)
 } AngleSteeringLimits;
+
+typedef struct {
+  // curvature cmd limits
+  const int max_curvature;
+  const float curvature_to_can;
+  const int max_curvature_error;         // used to limit error between meas and cmd while enabled
+  const bool inactive_curvature_is_zero; // if false, enforces angle near meas when disabled (default)
+  const float roll_to_can;
+  const bool use_roll_data;              // if true: use roll data from OP, false: use static roll (upstream logic)
+  const int driver_torque_allowance;     // torque driver input detection limit
+  const bool driver_torque_override;     // enables torque driver override safety check
+} CurvatureSteeringLimits;
 
 typedef struct {
   // acceleration cmd limits
@@ -226,6 +237,7 @@ void gen_crc_lookup_table_16(uint16_t poly, uint16_t crc_lut[]);
 #endif
 bool steer_torque_cmd_checks(int desired_torque, int steer_req, const TorqueSteeringLimits limits);
 bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const AngleSteeringLimits limits);
+bool steercurvature_cmd_checks(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits);
 bool longitudinal_accel_checks(int desired_accel, const LongitudinalLimits limits);
 bool longitudinal_speed_checks(int desired_speed, const LongitudinalLimits limits);
 bool longitudinal_gas_checks(int desired_gas, const LongitudinalLimits limits);
@@ -271,7 +283,10 @@ extern uint32_t heartbeat_engaged_mismatches;  // count of mismatches between he
 extern uint32_t ts_angle_last;
 extern int desired_angle_last;
 extern struct sample_t angle_meas;         // last 6 steer angles/curvatures
+extern struct sample_t curvature_meas;     // last 6 curvatures
 extern struct sample_t roll;               // last 6 roll values
+extern int desired_curvature_last;
+extern int desired_steer_power_last;
 
 // This can be set with a USB command
 // It enables features that allow alternative experiences, like not disengaging on gas press

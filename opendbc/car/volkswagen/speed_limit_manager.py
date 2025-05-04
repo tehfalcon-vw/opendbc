@@ -9,11 +9,11 @@ STREET_TYPE_URBAN = 1
 STREET_TYPE_NONURBAN = 2
 STREET_TYPE_HIGHWAY = 3
 SANITY_CHECK_DIFF_PERCENT_LOWER = 30
-SPEED_LIMIT_UNLIMITED_VZE_MS = 144
-ACCELERATION_PREDICATIVE = 2
-SEGMENT_DECAY = 60
+SPEED_LIMIT_UNLIMITED_VZE_KPH = int(round(144 * CV.MS_TO_KPH))
+ACCELERATION_PREDICATIVE = 1
+SEGMENT_DECAY = 10
 
-
+# this so invalidation mechanism found -> use decay, quality flag is worthless at the moment
 class SpeedLimitManager:
   def __init__(self, car_params, speed_limit_max_kph=SPEED_SUGGESTED_MAX_HIGHWAY_GER_KPH, predicative=False):
     self.CP = car_params
@@ -21,9 +21,7 @@ class SpeedLimitManager:
     self.v_limit_psd_next = NOT_SET
     self.v_limit_psd_legal = NOT_SET
     self.v_limit_vze = NOT_SET
-    self.v_limit_receive = False
-    self.v_limit_receive_segment_id = None
-    self.v_limit_speed_factor = CV.KPH_TO_MS
+    self.v_limit_speed_factor_psd = 1
     self.v_limit_vze_sanity_error = False
     self.v_limit_output_last = NOT_SET
     self.v_limit_max = speed_limit_max_kph
@@ -41,14 +39,13 @@ class SpeedLimitManager:
       self._receive_speed_factor_psd(psd_06)
       self._receive_current_segment_psd(psd_05)
       self._refresh_current_segment()
-      self._receive_speed_limit_permission(psd_06)
       self._build_predicative_segments(psd_04, psd_06)
       self._receive_speed_limit_psd_legal(psd_06)
       self._get_speed_limit_psd()
       self._get_speed_limit_psd_next(current_speed_ms)
     
   def get_speed_limit(self):
-    if (self.predicative == True and self.v_limit_psd_next != NOT_SET and self.v_limit_psd_next < self.v_limit_output_last):
+    if (self.predicative == True and self.v_limit_psd_next != NOT_SET and self.v_limit_psd_next <= self.v_limit_output_last):
       v_limit_output = self.v_limit_psd_next
     elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
       v_limit_output = self.v_limit_vze
@@ -63,7 +60,7 @@ class SpeedLimitManager:
     self.v_limit_vze_sanity_error = False
     self.v_limit_output_last = v_limit_output
     
-    return v_limit_output
+    return v_limit_output * CV.KPH_TO_MS
 
   def _speed_limit_vze_sanitiy_check(self, speed_limit_vze_new):
     if self.v_limit_output_last == NOT_SET:
@@ -71,19 +68,13 @@ class SpeedLimitManager:
       
     diff_p = 100 * speed_limit_vze_new / self.v_limit_output_last
     self.v_limit_vze_sanity_error = True if diff_p < SANITY_CHECK_DIFF_PERCENT_LOWER else False
-    if speed_limit_vze_new > SPEED_LIMIT_UNLIMITED_VZE_MS: # unlimited sign detected: use psd logic for setting maximum speed
+    if speed_limit_vze_new > SPEED_LIMIT_UNLIMITED_VZE_KPH: # unlimited sign detected: use psd logic for setting maximum speed
       self.v_limit_vze_sanity_error = True
 
   def _receive_speed_factor_psd(self, psd_06):
     if psd_06["PSD_06_Mux"] == 0:
       unit = psd_06["PSD_Sys_Geschwindigkeit_Einheit"]
-      self.v_limit_speed_factor = CV.MPH_TO_MS if unit == 1 else CV.KPH_TO_MS if unit == 0 else 0
-
-  def _receive_speed_limit_permission(self, psd_06):
-    if psd_06["PSD_06_Mux"] == 0:
-      permission = psd_06["PSD_Sys_Quali_Tempolimits"] == 7
-      self.v_limit_receive = permission
-      self.v_limit_receive_segment_id = psd_06["PSD_Sys_Segment_ID"] if permission else NOT_SET
+      self.v_limit_speed_factor_psd = CV.MPH_TO_KPH if unit == 1 else 1 if unit == 0 else 0
 
   def _convert_raw_speed_psd(self, raw_speed, street_type):
     if 0 < raw_speed < 11: # 0 - 45 kph
@@ -98,15 +89,15 @@ class SpeedLimitManager:
     else:
       speed = NOT_SET
       
-    return speed * self.v_limit_speed_factor
+    return int(round(speed * self.v_limit_speed_factor_psd))
 
   def _receive_speed_limit_vze_meb(self, vze):
     if vze["VZE_Verkehrszeichen_1_Typ"] == 0:
-      v_limit_vze = int(round(vze["VZE_Verkehrszeichen_1"]))# main traffic sign
+      v_limit_vze = int(round(vze["VZE_Verkehrszeichen_1"])) # main traffic sign
       if vze["VZE_Verkehrszeichen_Einheit"] == 1:
-        v_limit_vze *= CV.KPH_TO_MS
+        v_limit_vze *= 1
       else:
-        v_limit_vze *= CV.MPH_TO_MS
+        v_limit_vze = int(round(v_limit_vze * CV.MPH_TO_KPH))
       self._speed_limit_vze_sanitiy_check(v_limit_vze)
       self.v_limit_vze = v_limit_vze
 
@@ -118,14 +109,15 @@ class SpeedLimitManager:
   def _refresh_current_segment(self):
     current_segment = self.current_predicative_segment["ID"]
     if current_segment != NOT_SET:
-      if current_segment in self.predicative_segments:
+      seg = self.predicative_segments.get(current_segment)
+      if seg:
         self.current_predicative_segment["Speed"] = self.predicative_segments[current_segment]["Speed"]
         self.current_predicative_segment["StreetType"] = self.predicative_segments[current_segment]["StreetType"]
 
   def _build_predicative_segments(self, psd_04, psd_06):
     now = time.time()
     
-    # Schritt 1: Segment erfassen/aktualisieren
+    # Segment erfassen/aktualisieren
     if (psd_04["PSD_ADAS_Qualitaet"] == 1 and
         psd_04["PSD_wahrscheinlichster_Pfad"] == 1 and
         psd_04["PSD_Segment_ID"] != NOT_SET):
@@ -151,92 +143,61 @@ class SpeedLimitManager:
     # Schritt 2: Alte Segmente bereinigen
     current_id = self.current_predicative_segment["ID"]
     if current_id != NOT_SET:
-      valid_ids = set()
-      seg_id = current_id
-      while seg_id in self.predicative_segments:
-        seg = self.predicative_segments[seg_id]
-        if now - seg.get("Timestamp", 0) > SEGMENT_DECAY:
-          break  # Segment ist zu alt – Abbruch der Kette
-        valid_ids.add(seg_id)
-        seg_id = seg.get("ID_Prev")
-        if seg_id is None or seg_id in valid_ids:
-          break
       self.predicative_segments = {
         sid: seg for sid, seg in self.predicative_segments.items()
-        if sid in valid_ids
+        if now - seg.get("Timestamp", 0) <= SEGMENT_DECAY
       }
 
-    # Schritt 3: Geschwindigkeit setzen
-    if (self.v_limit_receive and
-        psd_06["PSD_06_Mux"] == 2 and
+    # Geschwindigkeit setzen
+    if (psd_06["PSD_06_Mux"] == 2 and
         psd_06["PSD_Ges_Typ"] == 1 and
-        psd_06["PSD_Ges_Gesetzlich_Kategorie"] == 0):
+        psd_06["PSD_Ges_Gesetzlich_Kategorie"] == 0 and
+        psd_06["PSD_Ges_Segment_ID"] != NOT_SET):
 
       raw_speed = psd_06["PSD_Ges_Geschwindigkeit"]
-      segment_id = self.v_limit_receive_segment_id
+      segment_id = psd_06["PSD_Ges_Segment_ID"]
 
       if segment_id in self.predicative_segments:
         speed = self._convert_raw_speed_psd(raw_speed, self.predicative_segments[segment_id]["StreetType"])
         self.predicative_segments[segment_id]["Speed"] = speed
         self.predicative_segments[segment_id]["QualityFlag"] = True
 
-      self.v_limit_receive = False
-      self.v_limit_receive_segment_id = NOT_SET
+  def _dfs(self, seg_id, total_dist, visited, current_speed_ms, best_result):
+    if seg_id in visited:
+      return
+    visited.add(seg_id)
+  
+    seg = self.predicative_segments.get(seg_id)
+    if not seg:
+      return
 
+    speed_kmh = seg.get("Speed", NOT_SET)
+    if seg.get("QualityFlag", False) and speed_kmh != NOT_SET:
+      delta_v = abs(current_speed_ms - speed_kmh * CV.KPH_TO_MS)
+      braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
+  
+      if total_dist <= braking_distance and total_dist < best_result["dist"]:
+        best_result["limit"] = speed_kmh
+        best_result["dist"] = total_dist
+  
+    for next_id, s in self.predicative_segments.items():
+      if s.get("ID_Prev") == seg_id:
+        next_length = s.get("Length", 0)
+        self._dfs(next_id, total_dist + next_length, visited.copy(), current_speed_ms, best_result)
+  
   def _get_speed_limit_psd_next(self, current_speed_ms):
-    """
-    Setzt self.v_limit_psd_next, wenn ein zukünftiges Speed Limit rechtzeitig erreichbar ist.
-    """
     current_id = self.current_predicative_segment.get("ID")
     length_remaining = self.current_predicative_segment.get("Length")
     self.v_limit_psd_next = NOT_SET
-
+  
     if current_id == NOT_SET or length_remaining == NOT_SET:
       return
+  
+    best_result = {"limit": NOT_SET, "dist": float('inf')}
 
-    current_speed_kmh = int(round(current_speed_ms * CV.MS_TO_KPH))
-    total_dist = length_remaining
-    visited = set()
-    seg_id = current_id
-
-    while seg_id and seg_id not in visited:
-      visited.add(seg_id)
-
-      # Finde nächstes Segment in Fahrtrichtung (ID_Prev == aktuelles Segment)
-      next_id = None
-      for candidate_id, seg in self.predicative_segments.items():
-        if seg.get("ID_Prev") == seg_id:
-          next_id = candidate_id
-          break
-
-      if not next_id or next_id in visited:
-        break
-
-      next_seg = self.predicative_segments.get(next_id)
-      if not next_seg:
-        break
-
-      if not next_seg.get("QualityFlag", False):
-        break
-
-      next_speed_kmh = next_seg.get("Speed")
-      
-      if next_speed_kmh == current_speed_kmh:
-        total_dist += next_seg.get("Length", 0)
-        seg_id = next_id
-        continue
-      
-      if next_speed_kmh != NOT_SET and next_speed_kmh != current_speed_kmh:
-        target_speed = next_speed_kmh * CV.KPH_TO_MS
-        delta_v = abs(current_speed_ms - target_speed)
-        braking_distance = (delta_v ** 2) / (2 * ACCELERATION_PREDICATIVE)
-
-        if total_dist <= braking_distance:
-          self.v_limit_psd_next = next_speed_kmh
-        return
-
-      total_dist += next_seg.get("Length", 0)
-      seg_id = next_id
+    self._dfs(current_id, length_remaining, set(), current_speed_ms, best_result)
+    if best_result["limit"] != NOT_SET:
+      self.v_limit_psd_next = best_result["limit"]
 
   def _get_speed_limit_psd(self):
     seg_id = self.current_predicative_segment.get("ID")

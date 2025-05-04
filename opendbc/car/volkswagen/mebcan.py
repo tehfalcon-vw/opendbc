@@ -125,18 +125,6 @@ def create_capacitive_wheel_touch(packer, bus, lat_active, klr_stock_values): # 
     })
 
   return packer.make_can_msg("KLR_01", bus, values)
-
-
-def create_hands_on_wheel_control(packer, bus):
-  # this is used for testing in a non KLR car with coded KLR
-  values = {
-    "KLR_Touchintensitaet_1": 70, # current touch
-    "KLR_Touchintensitaet_2": 50, # lower touch limit
-    "KLR_Touchintensitaet_3": 60, # upper touch limit
-    "KLR_Touchauswertung":    10, # touch output
-  }
-
-  return packer.make_can_msg("KLR_01", bus, values)
   
 
 def acc_control_value(main_switch_on, acc_faulted, long_active, esp_hold, override):
