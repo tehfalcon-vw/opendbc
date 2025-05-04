@@ -159,7 +159,7 @@ static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
         current_curvature *= -1;
       }
 
-      update_sample(&angle_meas, current_curvature);
+      update_sample(&curvature_meas, current_curvature);
     }
 
     // Update driver input torque samples
