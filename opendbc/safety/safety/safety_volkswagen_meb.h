@@ -140,6 +140,9 @@ static const AngleSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
   .inactive_angle_is_zero = true,
   .roll_to_can = 10000,
   .use_roll_data = true,
+  .driver_torque_allowance = 80,
+  .driver_torque_override = true,
+  .max_angle_error = 1492.5373 // 0.01 rad/m used for driver input check
 };
 
 static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
@@ -167,6 +170,18 @@ static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
       }
 
       update_sample(&angle_meas, current_curvature);
+    }
+
+    // Update driver input torque samples
+    // Signal: LH_EPS_03.EPS_Lenkmoment (absolute torque)
+    // Signal: LH_EPS_03.EPS_VZ_Lenkmoment (direction)
+    if (addr == MSG_LH_EPS_03) {
+      int torque_driver_new = GET_BYTE(to_push, 5) | ((GET_BYTE(to_push, 6) & 0x1FU) << 8);
+      int sign = (GET_BYTE(to_push, 6) & 0x80U) >> 7;
+      if (sign == 1) {
+        torque_driver_new *= -1;
+      }
+      update_sample(&torque_driver, torque_driver_new);
     }
 
     // Update cruise state
