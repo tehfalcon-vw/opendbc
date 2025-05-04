@@ -47,13 +47,12 @@ class SpeedLimitManager:
   def get_speed_limit(self):
     if (self.predicative == True and self.v_limit_psd_next != NOT_SET and self.v_limit_psd_next <= self.v_limit_output_last):
       v_limit_output = self.v_limit_psd_next
+    elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
+      v_limit_output = self.v_limit_vze
     elif self.v_limit_psd != NOT_SET:
       v_limit_output = self.v_limit_psd
     else:
       v_limit_output = self.v_limit_psd_legal
-
-    if (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
-      v_limit_output = self.v_limit_vze
 
     if v_limit_output > self.v_limit_max:
       v_limit_output = self.v_limit_max
@@ -93,9 +92,8 @@ class SpeedLimitManager:
     return int(round(speed * self.v_limit_speed_factor_psd))
 
   def _receive_speed_limit_vze_meb(self, vze):
-    if (vze["VZE_Verkehrszeichen_1_Typ"] == 0 and
-        vze["VZE_Zeichen_01_Kamera"] == 1):
-      v_limit_vze = int(round(vze["VZE_Verkehrszeichen_1"]))# main traffic sign
+    if vze["VZE_Verkehrszeichen_1_Typ"] == 0:
+      v_limit_vze = int(round(vze["VZE_Verkehrszeichen_1"])) # main traffic sign
       if vze["VZE_Verkehrszeichen_Einheit"] == 1:
         v_limit_vze *= 1
       else:
