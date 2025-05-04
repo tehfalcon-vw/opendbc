@@ -849,10 +849,25 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
 
 // Safety checks for curvature-based steering commands
 bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits) {
+  // ISO 11270
+  static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2
+  static const float EARTH_G = 9.81;
+  static const float AVERAGE_ROAD_ROLL = 0.06;  // ~3.4 degrees, 6% superelevation
+  static const float MAX_LATERAL_JERK = 5.0;  // m/s^3
+  
   bool violation = false;
+  uint32_t ts = microsecond_timer_get();
+  float ts_elapsed = get_ts_elapsed(ts, ts_curvature_check_last) / 1e6f;
 
-  int highest_desired_curvature = desired_curvature;
-  int lowest_desired_curvature = desired_curvature;
+  float speed = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
+  float jerk = MAX_LATERAL_JERK / (speed * speed);  // rad/m/s
+
+  float curvature_last = ((float)desired_curvature_last) / limits.curvature_to_can;
+  float curvature_up = curvature_last + jerk * ts_elapsed;
+  float curvature_down  = curvature_last - jerk * ts_elapsed;
+
+  int highest_desired_curvature = (int)(curvature_up * limits.curvature_to_can);
+  int lowest_desired_curvature  = (int)(curvature_down  * limits.curvature_to_can);
 
   if (is_lat_active() && steer_control_enabled) {
     // ISO 11270
@@ -928,6 +943,12 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
 
   desired_curvature_last = desired_curvature;
   desired_steer_power_last = desired_steer_power;
+  ts_curvature_check_last = ts;
+
+  if (violation || !is_lat_active()) {
+    desired_curvature_last = 0;
+    desired_steer_power_last = 0;
+  }
 
   return violation;
 }
