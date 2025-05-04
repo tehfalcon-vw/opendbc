@@ -131,12 +131,19 @@ typedef struct {
   const bool angle_is_curvature;         // if true, we can apply max lateral acceleration limits
   const bool enforce_angle_error;        // enables max_angle_error check
   const bool inactive_angle_is_zero;     // if false, enforces angle near meas when disabled (default)
+} AngleSteeringLimits;
 
+typedef struct {
+  // curvature cmd limits
+  const int max_curvature;
+  const float curvature_to_can;
+  const int max_curvature_error;         // used to limit error between meas and cmd while enabled
+  const bool inactive_curvature_is_zero; // if false, enforces angle near meas when disabled (default)
   const float roll_to_can;
   const bool use_roll_data;              // if true: use roll data from OP, false: use static roll (upstream logic)
   const int driver_torque_allowance;     // torque driver input detection limit
   const bool driver_torque_override;     // enables torque driver override safety check
-} AngleSteeringLimits;
+} CurvatureSteeringLimits;
 
 typedef struct {
   // acceleration cmd limits
