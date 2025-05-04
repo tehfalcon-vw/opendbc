@@ -176,9 +176,9 @@ static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
     // Signal: LH_EPS_03.EPS_Lenkmoment (absolute torque)
     // Signal: LH_EPS_03.EPS_VZ_Lenkmoment (direction)
     if (addr == MSG_LH_EPS_03) {
-      int torque_driver_new = GET_BYTE(to_push, 5) | ((GET_BYTE(to_push, 6) & 0x1FU) << 8);
-      int sign = (GET_BYTE(to_push, 6) & 0x80U) >> 7;
-      if (sign == 1) {
+      int torque_driver_new = GET_BYTE(to_push, 5U) | ((GET_BYTE(to_push, 6U) & 0x1FU) << 8);
+      int sign_driver_torque = (GET_BYTE(to_push, 6U) & 0x80U) >> 7;
+      if (sign_driver_torque == 1) {
         torque_driver_new *= -1;
       }
       update_sample(&torque_driver, torque_driver_new);
