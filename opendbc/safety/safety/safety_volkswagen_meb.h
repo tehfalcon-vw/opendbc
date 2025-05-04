@@ -113,7 +113,6 @@ static safety_config volkswagen_meb_init(uint16_t param) {
 
   volkswagen_set_button_prev = false;
   volkswagen_resume_button_prev = false;
-  volkswagen_steer_power_prev = 0;
 
 #ifdef ALLOW_DEBUG
   volkswagen_longitudinal = GET_FLAG(param, FLAG_VOLKSWAGEN_LONG_CONTROL);
