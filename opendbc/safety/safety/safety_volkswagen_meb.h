@@ -255,7 +255,7 @@ static bool volkswagen_meb_tx_hook(const CANPacket_t *to_send) {
   if (addr == MSG_Panda_Data_01) {
     int current_roll = (GET_BYTE(to_send, 0U) | ((GET_BYTE(to_send, 1U) & 0x7F) << 8));
 
-    bool current_roll_sign = GET_BIT(to_push, 15U);
+    bool current_roll_sign = GET_BIT(to_send, 15U);
     if (!current_roll_sign) {
       current_roll *= -1;
     }
