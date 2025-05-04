@@ -262,7 +262,7 @@ static bool volkswagen_meb_tx_hook(const CANPacket_t *to_send) {
       desired_curvature_raw *= -1;
     }
 
-    bool steer_req = (((GET_BYTE(to_send, 1U) >> 4) & 0x0F) == 4);
+    bool steer_req = ((GET_BYTE(to_send, 1U) >> 4) & 0x7U) == 4U;
     int steer_power = (GET_BYTE(to_send, 2U) >> 0) & 0x7FU;
 
     if (steer_curvature_cmd_checks(desired_curvature_raw, steer_power, steer_req, VOLKSWAGEN_MEB_STEERING_LIMITS)) {
