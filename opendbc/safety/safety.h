@@ -837,7 +837,7 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
       ((desired_angle_last > 0 && torque_driver.max > limits.driver_torque_allowance) ||
       (desired_angle_last < 0 && torque_driver.min < -limits.driver_torque_allowance))) {
 
-      const int curvature_error = abs(desired_angle - desired_angle_last);
+      const int curvature_error = ABS(desired_angle - desired_angle_last);
       if (curvature_error <= limits.max_angle_error) {
         highest_desired_angle = MAX(highest_desired_angle, desired_angle_last + limits.max_angle_error);
         lowest_desired_angle  = MIN(lowest_desired_angle,  desired_angle_last - limits.max_angle_error);
