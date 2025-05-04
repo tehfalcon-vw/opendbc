@@ -77,6 +77,8 @@ int desired_angle_last = 0;
 struct sample_t angle_meas;         // last 6 steer angles/curvatures
 
 struct sample_t roll; // last 6 roll values
+int desired_curvature_last = 0;
+int desired_steer_power_last = 0;
 
 
 int alternative_experience = 0;
@@ -910,6 +912,9 @@ bool curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool s
 
   // No curvature control allowed when controls are not allowed
   violation |= !is_lat_active() && steer_control_enabled;
+
+  desired_curvature_last = desired_curvature;
+  desired_steer_power_last = desired_steer_power;
 
   return violation;
 }
