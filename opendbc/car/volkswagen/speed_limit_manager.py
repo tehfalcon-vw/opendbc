@@ -52,7 +52,7 @@ class SpeedLimitManager:
     else:
       v_limit_output = self.v_limit_psd_legal
 
-    elif (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
+    if (self.v_limit_vze != NOT_SET and self.v_limit_vze_sanity_error != True):
       v_limit_output = self.v_limit_vze
 
     if v_limit_output > self.v_limit_max:
