@@ -64,7 +64,6 @@ extern const int MAX_WRONG_COUNTERS;
 // used to represent floating point vehicle speed in a sample_t
 #define VEHICLE_SPEED_FACTOR 1000.0
 #define MAX_TORQUE_RT_INTERVAL 250000U
-#define ROLL_SCALE 1000000
 
 
 // sample struct that keeps 6 samples in memory
@@ -132,6 +131,8 @@ typedef struct {
   const bool angle_is_curvature;         // if true, we can apply max lateral acceleration limits
   const bool enforce_angle_error;        // enables max_angle_error check
   const bool inactive_angle_is_zero;     // if false, enforces angle near meas when disabled (default)
+
+  const float roll_to_can;
   const bool use_roll_data;              // if true: use roll data from OP, false: use static roll (upstream logic)
 } AngleSteeringLimits;
 
