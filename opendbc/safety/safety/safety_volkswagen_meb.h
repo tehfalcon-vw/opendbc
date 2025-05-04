@@ -20,7 +20,6 @@
 #define MSG_Panda_Data_01    0x50A6EDA   // internal use, data for panda from OP sensors
 
 static uint8_t volkswagen_crc8_lut_8h2f[256]; // Static lookup table for CRC8 poly 0x2F, aka 8H2F/AUTOSAR
-static int volkswagen_steer_power_prev = 0;
 
 static bool vw_meb_get_longitudinal_allowed_override(void) {
   return controls_allowed && gas_pressed_prev;
@@ -125,24 +124,15 @@ static safety_config volkswagen_meb_init(uint16_t param) {
 }
 
 // lateral limits for curvature
-static const AngleSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
-  .max_angle = 29105, // 0.195 rad/m
-  .angle_deg_to_can = 149253.7313, // 1 / 6.7e-6 rad/m to can
-  .angle_rate_up_lookup = {
-    {5., 25., 25.},
-    {0.0015, 0.00015, 0.00015} // in rad/m
-  },
-  .angle_rate_down_lookup = {
-    {5., 25., 25.},
-    {0.002, 0.00035, 0.00035}
-  },
-  .angle_is_curvature = true,
-  .inactive_angle_is_zero = true,
+static const CurvatureSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
+  .max_curvature = 29105, // 0.195 rad/m
+  .curvature_to_can = 149253.7313, // 1 / 6.7e-6 rad/m to can
+  .inactive_curvature_is_zero = true,
   .roll_to_can = 10000,
   .use_roll_data = true,
   .driver_torque_allowance = 80,
   .driver_torque_override = true,
-  .max_angle_error = 1492.5373 // 0.01 rad/m used for driver input check
+  .max_curvature_error = 1492.5373 // 0.01 rad/m used for driver input check
 };
 
 static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
@@ -276,23 +266,9 @@ static bool volkswagen_meb_tx_hook(const CANPacket_t *to_send) {
     bool steer_req = (((GET_BYTE(to_send, 1U) >> 4) & 0x0F) == 4);
     int steer_power = (GET_BYTE(to_send, 2U) >> 0) & 0x7FU;
 
-    if (steer_angle_cmd_checks(desired_curvature_raw, steer_req, VOLKSWAGEN_MEB_STEERING_LIMITS)) {
+    if (curvature_cmd_checks(desired_curvature_raw, steer_power, steer_req, VOLKSWAGEN_MEB_STEERING_LIMITS) {
       tx = false;
-
-      // steer power is still allowed to decrease to zero monotonously
-      // while controls are not allowed anymore
-      if (steer_req && steer_power != 0) {        
-        if (steer_power < volkswagen_steer_power_prev) {
-          tx = true;
-        }
-      }
     }
-
-    if (!steer_req && steer_power != 0) {
-      tx = false; // steer power is not 0 when disabled
-    }
-
-    volkswagen_steer_power_prev = steer_power;
   }
 
   // Safety check for MSG_ACC_18 acceleration requests
