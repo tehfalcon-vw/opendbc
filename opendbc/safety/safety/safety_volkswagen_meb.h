@@ -257,8 +257,8 @@ static bool volkswagen_meb_tx_hook(const CANPacket_t *to_send) {
   if (addr == MSG_HCA_03) {
     int desired_curvature_raw = (GET_BYTE(to_send, 3U) | (GET_BYTE(to_send, 4U) & 0x7FU << 8));
 
-    bool sign = GET_BIT(to_send, 39U);
-    if (!sign) {
+    bool desired_curvature_sign = GET_BIT(to_send, 39U);
+    if (desired_curvature_sign) {
       desired_curvature_raw *= -1;
     }
 
