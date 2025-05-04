@@ -281,6 +281,8 @@ extern uint32_t ts_angle_last;
 extern int desired_angle_last;
 extern struct sample_t angle_meas;         // last 6 steer angles/curvatures
 extern struct sample_t roll;               // last 6 roll values
+extern int desired_curvature_last;
+extern int desired_steer_power_last;
 
 // This can be set with a USB command
 // It enables features that allow alternative experiences, like not disengaging on gas press
