@@ -459,6 +459,7 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
   reset_sample(&torque_meas);
   reset_sample(&torque_driver);
   reset_sample(&angle_meas);
+  reset_sample(&curvature_meas);
   reset_sample(&roll);
 
   controls_allowed = false;
@@ -838,6 +839,9 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
 bool curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits) {
   bool violation = false;
 
+  int highest_desired_curvature = desired_curvature_last;
+  int lowest_desired_curvature = desired_curvature_last;
+
   if (is_lat_active() && steer_control_enabled) {
     // ISO 11270
     static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2
@@ -896,9 +900,8 @@ bool curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool s
     // check for violation;
     violation |= max_limit_check(desired_curvature, highest_desired_curvature, lowest_desired_curvature);
   }
-  desired_curvature_last = desired_curvature;
 
-  // Angle should either be 0 or same as current angle while not steering
+  // Curvature should either be 0 or same as current curvature while not steering
   if (!steer_control_enabled) {
     const int max_inactive_curvature = CLAMP(curvature_meas.max, -limits.max_curvature, limits.max_curvature) + 1;
     const int min_inactive_curvature = CLAMP(curvature_meas.min, -limits.max_curvature, limits.max_curvature) - 1;
