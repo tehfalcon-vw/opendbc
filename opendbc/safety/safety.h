@@ -796,8 +796,8 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
       
       float max_lat_accel;
       if (limits.use_roll_data) { // dynamic roll from OP via CAN
-	float roll_max_f = ((float)roll.max) / ROLL_SCALE;
-	float roll_min_f = ((float)roll.min) / ROLL_SCALE;
+	float roll_max_f = ((float)roll.max) / limits.roll_to_can;
+	float roll_min_f = ((float)roll.min) / limits.roll_to_can;
 
 	float roll_comp_left  = MAX(roll_max_f, 0.0f);
 	float roll_comp_right = MIN(roll_min_f, 0.0f);
