@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple
 from dataclasses import dataclass, field
 from enum import Enum, IntFlag, StrEnum
 
-from opendbc.car import AngleSteeringLimits, Bus, CarSpecs, DbcDict, PlatformConfig, Platforms, structs, uds
+from opendbc.car import CurvatureSteeringLimits, Bus, CarSpecs, DbcDict, PlatformConfig, Platforms, structs, uds
 from opendbc.can.can_define import CANDefine
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.docs_definitions import CarFootnote, CarHarness, CarDocs, CarParts, Column, \
@@ -84,8 +84,9 @@ class CarControllerParams:
       self.CURVATURE_ERROR                   = 0.01  # HCA_03 angle error
       self.CURVATURE_POWER_FACTOR            = 4000
       
-      self.ANGLE_LIMITS: AngleSteeringLimits = AngleSteeringLimits(
+      self.CURVATURE_LIMITS: CurvatureSteeringLimits = CurvatureSteeringLimits(
         0.195,  # Max curvature for steering command, m^-1
+        False, # rate limits below are ignored, using only iso jerk limiting
         ([5, 25], [0.0015, 0.00015]), # curvature safety limit up
         ([5, 25], [0.002, 0.00035]) # curvature safety limit down
       )
