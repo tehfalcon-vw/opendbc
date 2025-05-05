@@ -865,7 +865,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     
     //uint32_t ts = microsecond_timer_get();
     //float ts_elapsed = get_ts_elapsed(ts, ts_curvature_check_last) / 1e6f;
-    float ts_elapsed = limits.send_rate
+    float ts_elapsed = limits.send_rate;
 
     float speed = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
     float curvature_rate_limit = MAX_LATERAL_JERK / (speed * speed);  // rad/m/s
@@ -944,7 +944,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
 
   desired_curvature_last = desired_curvature;
   desired_steer_power_last = desired_steer_power;
-  ts_curvature_check_last = ts;
+  //ts_curvature_check_last = ts;
 
   return violation;
 }
