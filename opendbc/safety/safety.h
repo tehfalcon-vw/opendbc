@@ -865,8 +865,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   float curvature_up = curvature_last + curvature_rate_limit * ts_elapsed;
   float curvature_down  = curvature_last - curvature_rate_limit * ts_elapsed;
 
-  int highest_desired_curvature = (int)(curvature_up * limits.curvature_to_can);
-  int lowest_desired_curvature  = (int)(curvature_down  * limits.curvature_to_can);
+  int highest_desired_curvature = (int)((curvature_up * limits.curvature_to_can) + 1.);
+  int lowest_desired_curvature  = (int)((curvature_down  * limits.curvature_to_can) - 1.);
 
   if (is_lat_active() && steer_control_enabled) {
     static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2, Maximum lateral acceleration as per ISO 11270 
