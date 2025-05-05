@@ -1,6 +1,6 @@
 import numpy as np
 from opendbc.can.packer import CANPacker
-from opendbc.car import Bus, apply_driver_steer_torque_limits, apply_std_steer_angle_limits, structs
+from opendbc.car import Bus, apply_driver_steer_torque_limits, apply_std_curvature_limits, structs
 from opendbc.car import DT_CTRL, ACCELERATION_DUE_TO_GRAVITY, ISO_LATERAL_ACCEL
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarControllerBase
@@ -9,24 +9,6 @@ from opendbc.car.volkswagen.values import CANBUS, CarControllerParams, Volkswage
 
 VisualAlert = structs.CarControl.HUDControl.VisualAlert
 LongCtrlState = structs.CarControl.Actuators.LongControlState
-
-
-def apply_vw_meb_curvature_limits(apply_curvature, apply_curvature_last, v_ego_raw, steering_angle, lat_active, roll, CCP):
-  # Curvature rate limit (this is more than ISO 11270 below would allow)
-  apply_curvature = apply_std_steer_angle_limits(apply_curvature, apply_curvature_last, v_ego_raw, steering_angle, lat_active, CCP.ANGLE_LIMITS)
-
-  # ISO 11270
-  # roll is passed to panda via custom Panda Data CAN message for internal usage only (not sent to car)
-  roll_compensation = roll * ACCELERATION_DUE_TO_GRAVITY 
-  max_lat_accel = ISO_LATERAL_ACCEL + roll_compensation
-  min_lat_accel = -ISO_LATERAL_ACCEL + roll_compensation
-  max_curvature = max_lat_accel / (max(v_ego_raw, 1.0) ** 2)
-  min_curvature = min_lat_accel / (max(v_ego_raw, 1.0) ** 2)
-
-  iso_limit_active = not (min_curvature <= apply_curvature <= max_curvature)
-  apply_curvature = float(np.clip(apply_curvature, min_curvature, max_curvature))
-
-  return apply_curvature, iso_limit_active
 
 
 def get_long_jerk_limits(accel: float, accel_last: float, a_ego: float, dt: float, jerk_prev: float, override: bool):
@@ -131,7 +113,8 @@ class CarController(CarControllerBase):
           hca_enabled = True
           current_curvature = CS.curvature
           actuator_curvature_with_offset = actuators.curvature + (CS.curvature - CC.currentCurvature)
-          apply_curvature, iso_limit_active = apply_vw_meb_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, 0., CC.latActive, CC.rollDEPRECATED, self.CCP) # apply ISO 11270 limit lateral acceleration
+          apply_curvature, iso_limit_active = apply_std_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, CC.rollDEPRECATED, CC.currentCurvature,
+                                                                         self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
           if CS.out.steeringPressed: # roughly sync curvature when user overrides
             apply_curvature = np.clip(apply_curvature, current_curvature - self.CCP.CURVATURE_ERROR, current_curvature + self.CCP.CURVATURE_ERROR)
           apply_curvature = np.clip(apply_curvature, -self.CCP.ANGLE_LIMITS.STEER_ANGLE_MAX, self.CCP.ANGLE_LIMITS.STEER_ANGLE_MAX)
