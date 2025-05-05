@@ -147,7 +147,7 @@ class CarController(CarControllerBase):
           if self.steering_power_last > 0: # keep HCA alive until steering power has reduced to zero
             hca_enabled = True
             current_curvature = CS.curvature
-            apply_curvature = np.clip(current_curvature, -self.CCP.ANGLE_LIMITS.STEER_ANGLE_MAX, self.CCP.ANGLE_LIMITS.STEER_ANGLE_MAX) # synchronize with current curvature
+            apply_curvature = np.clip(current_curvature, -self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX) # synchronize with current curvature
             steering_power = max(self.steering_power_last - self.CCP.STEERING_POWER_STEPS, 0)
           else: 
             hca_enabled = False
