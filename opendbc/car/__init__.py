@@ -190,7 +190,7 @@ def apply_std_curvature_limits(apply_curvature: float, apply_curvature_last: flo
 
   # ISO 11270
   # Lateral jerk
-  ts_elapsed = (100 / steer_step) * DT_CTRL
+  ts_elapsed = steer_step * DT_CTRL
   curvature_rate_limit = ISO_LATERAL_JERK / (max(v_ego, 1.0) ** 2)
   curvature_up = apply_curvature_last + curvature_rate_limit * ts_elapsed
   curvature_down  = apply_curvature_last - curvature_rate_limit * ts_elapsed
