@@ -137,6 +137,7 @@ typedef struct {
   // curvature cmd limits
   const int max_curvature;
   const float curvature_to_can;
+  const float send_rate;
   const int max_curvature_error;         // used to limit error between meas and cmd while enabled
   const bool inactive_curvature_is_zero; // if false, enforces angle near meas when disabled (default)
   const float roll_to_can;
