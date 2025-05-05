@@ -860,7 +860,6 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   bool violation = false;
 
   if (is_lat_active() && steer_control_enabled) {
-
     violation |= max_limit_check(desired_curvature, limits.max_curvature, -limits.max_curvature);
     
     //uint32_t ts = microsecond_timer_get();
@@ -922,7 +921,6 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       
         highest_desired_curvature = MAX(highest_desired_curvature, desired_curvature_last + limits.max_curvature_error + 1);
         lowest_desired_curvature  = MIN(lowest_desired_curvature,  desired_curvature_last - limits.max_curvature_error - 1);
-      }
     }
 
     // check for violation;
