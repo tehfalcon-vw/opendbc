@@ -943,11 +943,6 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   desired_steer_power_last = desired_steer_power;
   ts_curvature_check_last = ts;
 
-  if (violation || !is_lat_active()) {
-    desired_curvature_last = 0;
-    desired_steer_power_last = 0;
-  }
-
   return violation;
 }
 
