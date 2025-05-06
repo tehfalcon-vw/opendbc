@@ -873,8 +873,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     float curvature_up = curvature_last + curvature_rate_limit * ts_elapsed;
     float curvature_down  = curvature_last - curvature_rate_limit * ts_elapsed;
 
-    int highest_desired_curvature = (int)((curvature_up * limits.curvature_to_can) + 1.);
-    int lowest_desired_curvature  = (int)((curvature_down  * limits.curvature_to_can) - 1.);
+    int highest_desired_curvature = (int)(curvature_up * limits.curvature_to_can);
+    int lowest_desired_curvature  = (int)(curvature_down  * limits.curvature_to_can);
 
     float max_lat_accel;
     
@@ -902,8 +902,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     // Allow small tolerance by using minimum speed and rounding curvature up
     const float speed_lower = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
     const float speed_upper = MAX(vehicle_speed.max / VEHICLE_SPEED_FACTOR, 1.0);
-    const int max_curvature_upper = (max_lat_accel / (speed_lower * speed_lower) * limits.curvature_to_can) + 1.;
-    const int max_curvature_lower = (max_lat_accel / (speed_upper * speed_upper) * limits.curvature_to_can) - 1.;
+    const int max_curvature_upper = max_lat_accel / (speed_lower * speed_lower) * limits.curvature_to_can;
+    const int max_curvature_lower = max_lat_accel / (speed_upper * speed_upper) * limits.curvature_to_can;
 
     // ensure that the curvature error doesn't try to enforce above this limit
     if (desired_curvature_last > 0) {
@@ -919,9 +919,12 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       ((desired_curvature_last > 0 && torque_driver.max > limits.driver_torque_allowance) ||
       (desired_curvature_last < 0 && torque_driver.min < -limits.driver_torque_allowance))) {
       
-        highest_desired_curvature = MAX(highest_desired_curvature, desired_curvature_last + limits.max_curvature_error + 1);
-        lowest_desired_curvature  = MIN(lowest_desired_curvature,  desired_curvature_last - limits.max_curvature_error - 1);
+        highest_desired_curvature = MAX(highest_desired_curvature, desired_curvature_last + limits.max_curvature_error);
+        lowest_desired_curvature  = MIN(lowest_desired_curvature,  desired_curvature_last - limits.max_curvature_error);
     }
+
+    highest_desired_curvature += limits.curvature_tolerance_can;
+    lowest_desired_curvature  -= limits.curvature_tolerance_can;
 
     // check for violation;
     violation |= max_limit_check(desired_curvature, highest_desired_curvature, lowest_desired_curvature);
