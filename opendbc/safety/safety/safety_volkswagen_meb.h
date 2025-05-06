@@ -156,7 +156,7 @@ static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
       int current_curvature = ((GET_BYTE(to_push, 5U) & 0x7F) << 8 | GET_BYTE(to_push, 4U));
       
       bool current_curvature_sign = GET_BIT(to_push, 55U);
-      if (current_curvature_sign) {
+      if (!current_curvature_sign) {
         current_curvature *= -1;
       }
 
