@@ -899,7 +899,6 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
     }
 
-    // Allow small tolerance by using minimum speed and rounding curvature up
     const float speed_lower = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
     const float speed_upper = MAX(vehicle_speed.max / VEHICLE_SPEED_FACTOR, 1.0);
     const int max_curvature_upper = max_lat_accel / (speed_lower * speed_lower) * limits.curvature_to_can;
@@ -915,14 +914,13 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     }
 
     // check for user override
-    if (limits.driver_torque_override &&
-      ((desired_curvature_last > 0 && torque_driver.max > limits.driver_torque_allowance) ||
-      (desired_curvature_last < 0 && torque_driver.min < -limits.driver_torque_allowance))) {
-      
-        highest_desired_curvature = MAX(highest_desired_curvature, desired_curvature_last + limits.max_curvature_error);
-        lowest_desired_curvature  = MIN(lowest_desired_curvature,  desired_curvature_last - limits.max_curvature_error);
+    int driver_torque = MAX(ABS(torque_driver.max), ABS(torque_driver.min));
+    if (limits.driver_torque_override && driver_torque > limits.driver_torque_allowance) {
+      highest_desired_curvature = MAX(highest_desired_curvature, desired_curvature_last + limits.max_curvature_error);
+      lowest_desired_curvature  = MIN(lowest_desired_curvature,  desired_curvature_last - limits.max_curvature_error);
     }
 
+    // allow a small tolerance
     highest_desired_curvature += limits.curvature_tolerance_can;
     lowest_desired_curvature  -= limits.curvature_tolerance_can;
 
