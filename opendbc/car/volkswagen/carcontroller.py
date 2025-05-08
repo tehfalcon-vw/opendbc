@@ -224,7 +224,7 @@ class CarController(CarControllerBase):
         self.blinker_takt_counter = 0
 
       # resend at least 3 frames after a full cycle to not trigger hazards of "Wechselblinken" function (VW MEB full cycle: 0.8 seconds)
-      if self.blinker_takt_counter >= 42:
+      if self.blinker_takt_counter >= 30:
         self.blinker_takt_counter = 0
         self.trigger_blinker = True
       
