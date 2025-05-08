@@ -352,9 +352,7 @@ class CarState(CarStateBase):
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
     ret.leftBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
-    self.left_blinker_takt = bool(pt_cp.vl["Blinkmodi_02"]["Blinken_li_Fzg_Takt"])
     ret.rightBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_rechts"])
-    self.right_blinker_takt = bool(pt_cp.vl["Blinkmodi_02"]["Blinken_re_Fzg_Takt"])
     ret.buttonEvents = self.create_button_events(pt_cp, self.CCP.BUTTONS)
     self.gra_stock_values = pt_cp.vl["GRA_ACC_01"]
 
