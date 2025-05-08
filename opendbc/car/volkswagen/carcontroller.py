@@ -219,9 +219,9 @@ class CarController(CarControllerBase):
     if self.CP.flags & VolkswagenFlags.MEB:
       # synchronizing blinker cycle to car
       if True: #CC.leftBlinker:
-        self.blinker_takt_counter = self.blinker_takt_counter + 1 if not CS.out.leftBlinker else 0
+        self.blinker_takt_counter = 0 if CS.out.leftBlinker else self.blinker_takt_counter + 1
       elif CC.rightBlinker:
-        self.blinker_takt_counter = self.blinker_takt_counter + 1 if not CS.out.rightBlinker else 0
+        self.blinker_takt_counter = 0 if CS.out.rightBlinker else self.blinker_takt_counter + 1
       else:
         self.blinker_takt_counter = 0
 
