@@ -46,7 +46,7 @@ def create_eps_update(packer, bus, eps_stock_values, ea_simulated_torque):
   return packer.make_can_msg("LH_EPS_03", bus, values)
 
 
-def create_blinker_control(packer, bus, ea_hud_stock_values, left_blinker=False, right_blinker=False, warn_blinker=False):
+def create_blinker_control(packer, bus, ea_hud_stock_values, blinker_takt, left_blinker=False, right_blinker=False, warn_blinker=False):
   values = {s: ea_hud_stock_values[s] for s in [
     "EA_Texte",
     "ACF_Lampe_Hands_Off",
@@ -60,9 +60,13 @@ def create_blinker_control(packer, bus, ea_hud_stock_values, left_blinker=False,
     "EA_Unknown",
   ]}
 
-  values.update({
-    "EA_Blinken": 1 if left_blinker else (2 if right_blinker else (3 if warn_blinker else ea_hud_stock_values["EA_Blinken"])),
-  })
+  if ea_hud_stock_values["EA_Blinken"] == 0:
+    left_blinker = True if blinker_takt == True and left_blinker == True else False
+    right_blinker = True if blinker_takt == True and right_blinker == True else False
+
+    values.update({
+      "EA_Blinken": 1 if left_blinker else (2 if right_blinker else (3 if warn_blinker else ea_hud_stock_values["EA_Blinken"])),
+    })
 
   return packer.make_can_msg("EA_02", bus, values)
 
