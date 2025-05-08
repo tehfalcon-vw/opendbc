@@ -216,10 +216,10 @@ class CarController(CarControllerBase):
     if self.CP.flags & VolkswagenFlags.MEB:
       # synchronizing blinker cycle to car
       # resend at least 3 frames after a full cycle to not trigger hazards of "Wechselblinken" function (VW MEB full cycle: 0.8 seconds)
-      self.blinker_timeout_counter = 0 if CS.out.leftBlinker or CS.out.rightBlinker or self.blinker_timeout_counter > 3 else self.blinker_timeout_counter + 1
+      self.blinker_timeout_counter = 0 if CS.out.leftBlinker or CS.out.rightBlinker or self.blinker_timeout_counter > 4 else self.blinker_timeout_counter + 1
       if self.frame % 2 == 0:
-        left_blinker = True if True and not CS.out.leftBlinker and self.blinker_timeout_counter >= 3 else False
-        right_blinker = True if CC.rightBlinker and not CS.out.rightBlinker and self.blinker_timeout_counter >= 3 else False
+        left_blinker = True if True and not CS.out.leftBlinker and self.blinker_timeout_counter >= 4 else False
+        right_blinker = True if CC.rightBlinker and not CS.out.rightBlinker and self.blinker_timeout_counter >= 4 else False
         can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=True, right_blinker=CC.rightBlinker))
 
     # **** Cruise Controls ************************************************** #
