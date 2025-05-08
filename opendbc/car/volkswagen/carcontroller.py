@@ -213,7 +213,7 @@ class CarController(CarControllerBase):
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
     if self.CP.flags & VolkswagenFlags.MEB:
       if self.frame % 2 == 0:
-        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker=CC.leftBlinker, right_blinker=CC.rightBlinker))
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker=True, right_blinker=CC.rightBlinker))
 
     # **** Cruise Controls ************************************************** #
     
