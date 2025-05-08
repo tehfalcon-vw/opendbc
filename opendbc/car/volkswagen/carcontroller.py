@@ -90,6 +90,8 @@ class CarController(CarControllerBase):
     self.gra_up = False
     self.gra_down = False
     self.blinker_takt = False
+    self.left_blinker = False
+    self.right_blinker = False
 
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
@@ -213,10 +215,18 @@ class CarController(CarControllerBase):
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
     if self.CP.flags & VolkswagenFlags.MEB:
+      if self.frame % 10 == 0:
+        if self.right_blinker:
+          self.left_blinker = True
+          self.right_blinker = False
+        else:
+          self.right_blinker = True
+          self.left_blinker = False
+
       if self.frame % 83 == 0:
         self.blinker_takt = True if self.blinker_takt == False else True
       if self.frame % 2 == 0:
-        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, self.blinker_takt, left_blinker=True, right_blinker=CC.rightBlinker))
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, self.blinker_takt, left_blinker=self.left_blinker, right_blinker=self.right_blinker))
         self.blinker_takt = False
 
     # **** Cruise Controls ************************************************** #
