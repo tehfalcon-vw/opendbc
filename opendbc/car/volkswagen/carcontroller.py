@@ -89,7 +89,7 @@ class CarController(CarControllerBase):
     self.gra_enabled = False
     self.gra_up = False
     self.gra_down = False
-    self.blinker_takt_counter = None
+    self.blinker_takt_counter = 0
     self.trigger_blinker = False
     self.left_blinker = False
     self.right_blinker = False
