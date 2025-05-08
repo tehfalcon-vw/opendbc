@@ -89,8 +89,7 @@ class CarController(CarControllerBase):
     self.gra_enabled = False
     self.gra_up = False
     self.gra_down = False
-    self.blinker_takt_counter = 0
-    self.trigger_blinker = False
+    self.blinker_timeout_counter = 0
 
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
@@ -216,23 +215,12 @@ class CarController(CarControllerBase):
     # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle
     if self.CP.flags & VolkswagenFlags.MEB:
       # synchronizing blinker cycle to car
-      #if True: #CC.leftBlinker:
-      #  self.blinker_takt_counter = 0 if CS.out.leftBlinker else self.blinker_takt_counter + 1
-      #elif CC.rightBlinker:
-      #  self.blinker_takt_counter = 0 if CS.out.rightBlinker else self.blinker_takt_counter + 1
-      #else:
-      #  self.blinker_takt_counter = 0
-
       # resend at least 3 frames after a full cycle to not trigger hazards of "Wechselblinken" function (VW MEB full cycle: 0.8 seconds)
-      #if self.blinker_takt_counter >= 30:
-      #  self.blinker_takt_counter = 0
-      #  self.trigger_blinker = True
-      
+      self.blinker_timeout_counter = 0 if CS.out.leftBlinker or CS.out.rightBlinker or self.blinker_timeout_counter > 3 else self.blinker_timeout_counter + 1
       if self.frame % 2 == 0:
-        left_blinker = True if True and not CS.out.leftBlinker else False
-        right_blinker = True if CC.rightBlinker and not CS.out.rightBlinker else False
+        left_blinker = True if True and not CS.out.leftBlinker and self.blinker_timeout_counter >= 3 else False
+        right_blinker = True if CC.rightBlinker and not CS.out.rightBlinker and self.blinker_timeout_counter >= 3 else False
         can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=True, right_blinker=CC.rightBlinker))
-        #self.trigger_blinker = False # 1 frame is enough
 
     # **** Cruise Controls ************************************************** #
     
