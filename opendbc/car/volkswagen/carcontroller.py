@@ -91,8 +91,6 @@ class CarController(CarControllerBase):
     self.gra_down = False
     self.blinker_takt_counter = 0
     self.trigger_blinker = False
-    self.left_blinker = False
-    self.right_blinker = False
 
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
@@ -231,7 +229,7 @@ class CarController(CarControllerBase):
         self.trigger_blinker = True
       
       if self.frame % 2 == 0:
-        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, self.trigger_blinker, left_blinker=self.left_blinker, right_blinker=self.right_blinker))
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, self.trigger_blinker, left_blinker=True, right_blinker=CC.rightBlinker))
         self.trigger_blinker = False # 1 frame is enough
 
     # **** Cruise Controls ************************************************** #
