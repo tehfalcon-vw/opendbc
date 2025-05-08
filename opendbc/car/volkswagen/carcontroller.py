@@ -216,21 +216,23 @@ class CarController(CarControllerBase):
     # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle
     if self.CP.flags & VolkswagenFlags.MEB:
       # synchronizing blinker cycle to car
-      if True: #CC.leftBlinker:
-        self.blinker_takt_counter = 0 if CS.out.leftBlinker else self.blinker_takt_counter + 1
-      elif CC.rightBlinker:
-        self.blinker_takt_counter = 0 if CS.out.rightBlinker else self.blinker_takt_counter + 1
-      else:
-        self.blinker_takt_counter = 0
+      #if True: #CC.leftBlinker:
+      #  self.blinker_takt_counter = 0 if CS.out.leftBlinker else self.blinker_takt_counter + 1
+      #elif CC.rightBlinker:
+      #  self.blinker_takt_counter = 0 if CS.out.rightBlinker else self.blinker_takt_counter + 1
+      #else:
+      #  self.blinker_takt_counter = 0
 
       # resend at least 3 frames after a full cycle to not trigger hazards of "Wechselblinken" function (VW MEB full cycle: 0.8 seconds)
-      if self.blinker_takt_counter >= 30:
-        self.blinker_takt_counter = 0
-        self.trigger_blinker = True
+      #if self.blinker_takt_counter >= 30:
+      #  self.blinker_takt_counter = 0
+      #  self.trigger_blinker = True
       
       if self.frame % 2 == 0:
-        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, self.trigger_blinker, left_blinker=True, right_blinker=CC.rightBlinker))
-        self.trigger_blinker = False # 1 frame is enough
+        left_blinker = True if True and not CS.out.leftBlinker else False
+        right_blinker = True if CC.rightBlinker and not CS.out.rightBlinker else False
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=True, right_blinker=CC.rightBlinker))
+        #self.trigger_blinker = False # 1 frame is enough
 
     # **** Cruise Controls ************************************************** #
     
