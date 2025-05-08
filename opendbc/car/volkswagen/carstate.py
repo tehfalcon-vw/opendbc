@@ -351,8 +351,10 @@ class CarState(CarStateBase):
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
-    ret.leftBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
-    ret.rightBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_rechts"])
+    #ret.leftBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
+    ret.leftBlinker = bool(pt_cp.vl["SMLS_01"]["BH_Blinker_li"])
+    #ret.rightBlinker = bool(pt_cp.vl["Blinkmodi_02"]["BM_rechts"])
+    ret.rightBlinker = bool(pt_cp.vl["SMLS_01"]["BH_Blinker_re"])
     ret.buttonEvents = self.create_button_events(pt_cp, self.CCP.BUTTONS)
     self.gra_stock_values = pt_cp.vl["GRA_ACC_01"]
 
@@ -508,6 +510,7 @@ class CarState(CarStateBase):
       ("Motor_14", 10),           # From J623 Engine control module
       ("Motor_16", 2),            # From J623 Engine control module
       ("Blinkmodi_02", 2),        # From J519 BCM (sent at 1Hz when no lights active, 50Hz when active)
+      ("SMLS_01", 1),             # From Stalk Controls
       ("LH_EPS_03", 100),         # From J500 Steering Assist with integrated sensors
       ("Getriebe_11", 100),       # From J743 Auto transmission control module
       ("ZV_02", 5),               # From ZV
