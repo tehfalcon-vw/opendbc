@@ -213,15 +213,15 @@ class CarController(CarControllerBase):
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
     # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle
-    if self.CP.flags & VolkswagenFlags.MEB:
+    #if self.CP.flags & VolkswagenFlags.MEB:
       # synchronizing blinker cycle to car
       # resend at least 2 frames after a full cycle to not trigger hazards of "Wechselblinken" function (VW MEB full cycle: 0.8 seconds)
-      blinker_timeout_done = self.blinker_timeout_counter >= 2
-      self.blinker_timeout_counter = 0 if CS.out.leftBlinker or CS.out.rightBlinker or blinker_timeout_done else self.blinker_timeout_counter + 1
-      if self.frame % 2 == 0:
-        left_blinker = CC.leftBlinker and blinker_timeout_done
-        right_blinker = CC.rightBlinker and blinker_timeout_done
-        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=left_blinker, right_blinker=right_blinker))
+      #blinker_timeout_done = self.blinker_timeout_counter >= 2
+      #self.blinker_timeout_counter = 0 if CS.out.leftBlinker or CS.out.rightBlinker or blinker_timeout_done else self.blinker_timeout_counter + 1
+      #if self.frame % 2 == 0:
+      #  left_blinker = CC.leftBlinker and blinker_timeout_done
+      #  right_blinker = CC.rightBlinker and blinker_timeout_done
+      #  can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=left_blinker, right_blinker=right_blinker))
 
     # **** Cruise Controls ************************************************** #
     
