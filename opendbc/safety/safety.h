@@ -916,8 +916,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     // check for user override
     int driver_torque = MAX(ABS(torque_driver.max), ABS(torque_driver.min));
     if (limits.driver_torque_override && driver_torque > limits.driver_torque_allowance) {
-      highest_desired_curvature = MAX(highest_desired_curvature, desired_curvature_last + limits.max_curvature_error);
-      lowest_desired_curvature  = MIN(lowest_desired_curvature,  desired_curvature_last - limits.max_curvature_error);
+      highest_desired_curvature = MAX(highest_desired_curvature, curvature_meas.max + limits.max_curvature_error);
+      lowest_desired_curvature  = MIN(lowest_desired_curvature,  curvature_meas.min - limits.max_curvature_error);
     }
 
     // allow a small tolerance
