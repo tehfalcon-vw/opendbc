@@ -132,9 +132,6 @@ static const CurvatureSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
   .inactive_curvature_is_zero = true,
   .roll_to_can = 10000,
   .use_roll_data = true,
-  .driver_torque_allowance = 80,
-  .driver_torque_override = true,
-  .max_curvature_error = 1492.5373 // 0.01 rad/m used for driver input check
 };
 
 static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
