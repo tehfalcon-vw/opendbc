@@ -919,26 +919,29 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       float fudged_speed_error = MAX((vehicle_speed.max / VEHICLE_SPEED_FACTOR), 1.0);
       float relaxed_rate = MAX_LATERAL_JERK / (fudged_speed_error * fudged_speed_error);
       float desired_curvature_last_f = ((float)desired_curvature_last) / limits.curvature_to_can;
-      float curvature_meas_max = ((float)curvature_meas.max) / limits.curvature_to_can;
-      float curvature_meas_min = ((float)curvature_meas.min) / limits.curvature_to_can;
-
-      if (desired_curvature_last_f > curvature_meas_max + limits.max_curvature_error) {
-        float target = curvature_meas_max + limits.max_curvature_error;
+      float curvature_meas_max_f = ((float)curvature_meas.max) / limits.curvature_to_can;
+      float curvature_meas_min_f = ((float)curvature_meas.min) / limits.curvature_to_can;
+    
+      int highest_desired_curvature_error = (int)((curvature_meas_max_f + limits.max_curvature_error) * limits.curvature_to_can);
+      int lowest_desired_curvature_error  = (int)((curvature_meas_min_f - limits.max_curvature_error) * limits.curvature_to_can);
+    
+      if (desired_curvature_last_f > curvature_meas_max_f + limits.max_curvature_error) {
+        float target = curvature_meas_max_f + limits.max_curvature_error;
         float curvature_down = desired_curvature_last_f - relaxed_rate * ts_elapsed;
         lowest_desired_curvature = MIN(lowest_desired_curvature, (int)(MIN(curvature_down, target) * limits.curvature_to_can));
-
-      } else if (desired_curvature_last_f < curvature_meas_min - limits.max_curvature_error) {
-        float target = curvature_meas_min - limits.max_curvature_error;
+    
+      } else if (desired_curvature_last_f < curvature_meas_min_f - limits.max_curvature_error) {
+        float target = curvature_meas_min_f - limits.max_curvature_error;
         float curvature_up = desired_curvature_last_f + relaxed_rate * ts_elapsed;
         highest_desired_curvature = MAX(highest_desired_curvature, (int)(MAX(curvature_up, target) * limits.curvature_to_can));
-
+    
       } else {
         // innerhalb des Fehlerkorridors, nur clamps
-        highest_desired_curvature = MAX(highest_desired_curvature, (int)((curvature_meas_max + limits.max_curvature_error) * limits.curvature_to_can));
-        lowest_desired_curvature  = MIN(lowest_desired_curvature,  (int)((curvature_meas_min - limits.max_curvature_error) * limits.curvature_to_can));
+        highest_desired_curvature = MAX(highest_desired_curvature, highest_desired_curvature_error);
+        lowest_desired_curvature  = MIN(lowest_desired_curvature, lowest_desired_curvature_error);
       }
     }
-
+    
     // allow a small tolerance
     highest_desired_curvature += limits.curvature_tolerance_can;
     lowest_desired_curvature  -= limits.curvature_tolerance_can;
