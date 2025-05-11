@@ -935,8 +935,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
         lowest_desired_curvature = (int)(MIN(curvature_up_f, lowest_desired_curvature_error_f) * limits.curvature_to_can);
       
       } else {
-        highest_desired_angle = MIN(highest_desired_curvature, (int)(highest_desired_curvature_error_f * limits.curvature_to_can));
-        lowest_desired_angle = MAX(lowest_desired_curvature, (int)(lowest_desired_curvature_error_f * limits.curvature_to_can));
+        highest_desired_curvature = MIN(highest_desired_curvature, (int)(highest_desired_curvature_error_f * limits.curvature_to_can));
+        lowest_desired_curvature = MAX(lowest_desired_curvature, (int)(lowest_desired_curvature_error_f * limits.curvature_to_can));
       }
     }
     
