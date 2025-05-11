@@ -927,12 +927,12 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     
       if (desired_curvature_last_f > highest_desired_curvature_error_f) {
         float target = highest_desired_curvature_error_f;
-        float curvature_down = desired_curvature_last_f - relaxed_rate_down * ts_elapsed;
+        float curvature_down = desired_curvature_last_f - relaxed_rate * ts_elapsed;
         highest_desired_curvature = MAX(highest_desired_curvature, (int)(MAX(curvature_down, target) * limits.curvature_to_can));
 
       } else if (desired_curvature_last_f < lowest_desired_curvature_error_f) {
         float target = lowest_desired_curvature_error_f;
-        float curvature_up = desired_curvature_last_f + relaxed_rate_up * ts_elapsed;
+        float curvature_up = desired_curvature_last_f + relaxed_rate * ts_elapsed;
         lowest_desired_curvature = MIN(lowest_desired_curvature, (int)(MIN(curvature_up, target) * limits.curvature_to_can));
     
       } else {
