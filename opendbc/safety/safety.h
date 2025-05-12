@@ -879,21 +879,14 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     float max_lat_accel;
     
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      float roll_max_f = ((float)roll.max) / limits.roll_to_can;
-      float roll_min_f = ((float)roll.min) / limits.roll_to_can;
-
-      float roll_comp_left  = MAX(roll_max_f, 0.0f);
-      float roll_comp_right = MIN(roll_min_f, 0.0f);
-
-      float limit_left  = ISO_LATERAL_ACCEL + (roll_comp_left  * EARTH_G);
-      float limit_right = ISO_LATERAL_ACCEL + (-roll_comp_right * EARTH_G);
-
       if (desired_curvature_last > 0) {
-      	max_lat_accel = limit_right;
+        float roll_right = ((float)roll.min) / limits.roll_to_can;
+        max_lat_accel = ISO_LATERAL_ACCEL - (roll_right * EARTH_G);
       } else if (desired_curvature_last < 0) {
-      	max_lat_accel = limit_left;
+        float roll_left = ((float)roll.max) / limits.roll_to_can;
+        max_lat_accel = ISO_LATERAL_ACCEL + (roll_left * EARTH_G);
       } else {
-      	max_lat_accel = ISO_LATERAL_ACCEL;
+        max_lat_accel = ISO_LATERAL_ACCEL;
       }
     } else { // OP upstream default, static limit without real roll data
       max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
