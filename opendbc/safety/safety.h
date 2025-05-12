@@ -884,7 +884,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       float roll_neg = (float)roll.min / limits.roll_to_can;
 
       float max_lat_accel_pos = ISO_LATERAL_ACCEL - roll_pos * EARTH_G;
-      float max_lat_accel_neg = ISO_LATERAL_ACCEL - roll_neg * EARTH_G;
+      float max_lat_accel_neg = ISO_LATERAL_ACCEL + roll_neg * EARTH_G;
 
       max_curvature_upper = (max_lat_accel_pos / (speed * speed) * limits.curvature_to_can);
       max_curvature_lower = (max_lat_accel_neg / (speed * speed) * limits.curvature_to_can);
