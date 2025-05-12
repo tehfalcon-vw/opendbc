@@ -876,29 +876,41 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
 
     // ISO lateral limit
     float max_lat_accel;
+    int max_curvature_upper;
+    int max_curvature_lower;
+    
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      if (desired_curvature_last > 0) {
-        float roll_right = (float)roll.max / limits.roll_to_can;
-        max_lat_accel    = ISO_LATERAL_ACCEL - (roll_right * EARTH_G);
-      } else if (desired_curvature_last < 0) {
-        float roll_left = (float)roll.min / limits.roll_to_can;
-        max_lat_accel   = ISO_LATERAL_ACCEL - (roll_left * EARTH_G);
-      } else {
-        max_lat_accel = ISO_LATERAL_ACCEL;
-      }
+      float roll_pos = (float)roll.max / limits.roll_to_can; 
+      float roll_neg = (float)roll.min / limits.roll_to_can;
+
+      float max_lat_accel_pos = ISO_LATERAL_ACCEL - roll_pos * EARTH_G;
+      float max_lat_accel_neg = ISO_LATERAL_ACCEL - roll_neg * EARTH_G;
+
+      max_curvature_upper = (max_lat_accel_pos / (speed * speed) * limits.curvature_to_can);
+      max_curvature_lower = (max_lat_accel_neg / (speed * speed) * limits.curvature_to_can);
+
     } else { // OP upstream default, static limit without real roll data
       max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
+
+      max_curvature_upper = (max_lat_accel / (speed * speed) * limits.curvature_to_can);
+      max_curvature_lower = (max_lat_accel / (speed * speed) * limits.curvature_to_can);
     }
-    
-    int max_curvature = max_lat_accel / (speed * speed) * limits.curvature_to_can;
+
+    max_curvature_upper += (max_curvature_upper >= 0) ? 1 : -1;
+    max_curvature_lower += (max_curvature_lower >= 0) ? 1 : -1;
     
     // ensure that the curvature error doesn't try to enforce above this limit
-    lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  -max_curvature, max_curvature);
-    highest_desired_curvature = CLAMP(highest_desired_curvature, -max_curvature, max_curvature);
+    if (desired_curvature_last >= 0) {          // Rechtskurve
+      highest_desired_curvature = CLAMP(highest_desired_curvature, -max_curvature_upper,  max_curvature_upper);
+      lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  -max_curvature_lower,  max_curvature_lower);
+    } else {                                    // Linkskurve
+      highest_desired_curvature = CLAMP(highest_desired_curvature, -max_curvature_lower,  max_curvature_lower);
+      lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  -max_curvature_upper,  max_curvature_upper);
+    }
 
     // Outward‑Rounding
-    if (highest_desired_curvature >= 0) highest_desired_curvature += 1; else highest_desired_curvature -= 1;
-    if (lowest_desired_curvature >= 0) lowest_desired_curvature += 1; else lowest_desired_curvature -= 1;
+    highest_desired_curvature += (highest_desired_curvature >= 0) ? 1 : -1;
+    lowest_desired_curvature  += (lowest_desired_curvature  >= 0) ? 1 : -1;
     
     // allow a small tolerance
     highest_desired_curvature += limits.curvature_tolerance_can;
