@@ -853,38 +853,40 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
 // Safety checks for curvature-based steering commands
 bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits) {
   static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2, Maximum lateral acceleration as per ISO 11270
-  static const float MAX_LATERAL_JERK = 5.0;  // m/s^3, Maximum jerk as per ISO 11270
-  static const float EARTH_G = 9.81;
+  static const float MAX_LATERAL_JERK  = 5.0;  // m/s^3, Maximum jerk as per ISO 11270
+  static const float EARTH_G           = 9.81;
   static const float AVERAGE_ROAD_ROLL = 0.06;  // ~3.4 degrees, 6% superelevation
   
   bool violation = false;
 
   if (is_lat_active() && steer_control_enabled) {
     violation |= max_limit_check(desired_curvature, limits.max_curvature, -limits.max_curvature);
-    
-    //uint32_t ts = microsecond_timer_get();
-    //float ts_elapsed = get_ts_elapsed(ts, ts_curvature_check_last) / 1e6f;
-    float ts_elapsed = limits.send_rate;
 
-    float speed = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
+    // ISO jerk limit
+    float ts_elapsed           = limits.send_rate;
+    float speed                = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
     float curvature_rate_limit = MAX_LATERAL_JERK / (speed * speed);  // rad/m/s
 
-    float curvature_last = ((float)desired_curvature_last) / limits.curvature_to_can;
-    float curvature_up = curvature_last + curvature_rate_limit * ts_elapsed;
+    float curvature_last  = (float)desired_curvature_last / limits.curvature_to_can;
+    float curvature_up    = curvature_last + curvature_rate_limit * ts_elapsed;
     float curvature_down  = curvature_last - curvature_rate_limit * ts_elapsed;
 
-    int highest_desired_curvature = (int)(curvature_up * limits.curvature_to_can);
+    int highest_desired_curvature = (int)(curvature_up    * limits.curvature_to_can);
     int lowest_desired_curvature  = (int)(curvature_down  * limits.curvature_to_can);
 
+    // Outward‑Rounding
+    if (highest_desired_curvature >= 0) highest_desired_curvature += 1; else highest_desired_curvature -= 1;
+    if (lowest_desired_curvature >= 0)  lowest_desired_curvature += 1;  else lowest_desired_curvature -= 1;
+
+    // ISO lateral limit
     float max_lat_accel;
-    
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
       if (desired_curvature_last > 0) {
-        float roll_right = ((float)roll.min) / limits.roll_to_can;
-        max_lat_accel = ISO_LATERAL_ACCEL - (roll_right * EARTH_G);
+        float roll_right = (float)roll.min / limits.roll_to_can;
+        max_lat_accel    = ISO_LATERAL_ACCEL - (roll_right * EARTH_G);
       } else if (desired_curvature_last < 0) {
-        float roll_left = ((float)roll.max) / limits.roll_to_can;
-        max_lat_accel = ISO_LATERAL_ACCEL + (roll_left * EARTH_G);
+        float roll_left = (float)roll.max / limits.roll_to_can;
+        max_lat_accel   = ISO_LATERAL_ACCEL + (roll_left * EARTH_G);
       } else {
         max_lat_accel = ISO_LATERAL_ACCEL;
       }
@@ -894,9 +896,14 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
 
     const float speed_lower = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0);
     const float speed_upper = MAX(vehicle_speed.max / VEHICLE_SPEED_FACTOR, 1.0);
-    const int max_curvature_upper = max_lat_accel / (speed_lower * speed_lower) * limits.curvature_to_can;
-    const int max_curvature_lower = max_lat_accel / (speed_upper * speed_upper) * limits.curvature_to_can;
+    
+    int max_curvature_upper = max_lat_accel / (speed_lower * speed_lower) * limits.curvature_to_can;
+    int max_curvature_lower = max_lat_accel / (speed_upper * speed_upper) * limits.curvature_to_can;
 
+    // Outward‑Rounding
+    if (max_curvature_upper >= 0) max_curvature_upper += 1; else max_curvature_upper -= 1;
+    if (max_curvature_lower >= 0) max_curvature_lower += 1; else max_curvature_lower -= 1;
+    
     // ensure that the curvature error doesn't try to enforce above this limit
     if (desired_curvature_last > 0) {
       lowest_desired_curvature = CLAMP(lowest_desired_curvature, -max_curvature_lower, max_curvature_lower);
