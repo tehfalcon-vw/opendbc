@@ -864,22 +864,22 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
 
     // ISO jerk limit
     float ts_elapsed           = limits.send_rate;
-    float speed                = MAX(vehicle_speed.min / VEHICLE_SPEED_FACTOR, 1.0f);
+    float speed                = MAX((vehicle_speed.min / VEHICLE_SPEED_FACTOR) - 1., 1.0);
     float curvature_rate_limit = MAX_LATERAL_JERK / (speed * speed);  // rad/m/s
 
-    float curvature_last  = (float)desired_curvature_last / limits.curvature_to_can;
+    float curvature_last  = desired_curvature_last / limits.curvature_to_can;
     float curvature_up    = curvature_last + curvature_rate_limit * ts_elapsed;
     float curvature_down  = curvature_last - curvature_rate_limit * ts_elapsed;
 
-    int highest_desired_curvature = (int)(curvature_up   * limits.curvature_to_can);
-    int lowest_desired_curvature  = (int)(curvature_down * limits.curvature_to_can);
+    int highest_desired_curvature = (curvature_up   * limits.curvature_to_can) + 1.;
+    int lowest_desired_curvature  = (curvature_down * limits.curvature_to_can) - 1.;
 
     // ISO lateral limit
-    int max_curvature_upper, max_curvature_lower;
+    float max_curvature_upper, max_curvature_lower;
     
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      float roll_max = (float)roll.max / limits.roll_to_can; 
-      float roll_min = (float)roll.min / limits.roll_to_can;
+      float roll_max = roll.max / limits.roll_to_can; 
+      float roll_min = roll.min / limits.roll_to_can;
 
       // use numerically loosest roll to ensure some tolerance to ISO boundary
       float roll_loose = (ABS(roll_max) < ABS(roll_min)) ? roll_max : roll_min;
@@ -887,26 +887,22 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       float max_lat_accel =  ISO_LATERAL_ACCEL - roll_loose * EARTH_G;
       float min_lat_accel = -ISO_LATERAL_ACCEL - roll_loose * EARTH_G;
 
-      max_curvature_upper = (int)(max_lat_accel / (speed * speed) * limits.curvature_to_can);
-      max_curvature_lower = (int)(min_lat_accel / (speed * speed) * limits.curvature_to_can);
+      max_curvature_upper = max_lat_accel / (speed * speed);
+      max_curvature_lower = min_lat_accel / (speed * speed);
 
     } else { // OP upstream default, static limit without real roll data
       float lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
 
-      max_curvature_upper =  (int)(lat_accel / (speed * speed) * limits.curvature_to_can);
-      max_curvature_lower = -(int)(lat_accel / (speed * speed) * limits.curvature_to_can);
+      max_curvature_upper =  lat_accel / (speed * speed);
+      max_curvature_lower = -lat_accel / (speed * speed);
     }
 
-    max_curvature_upper += (max_curvature_upper >= 0) ? 1 : -1;
-    max_curvature_lower += (max_curvature_lower >= 0) ? 1 : -1;
+    max_curvature_upper = (max_curvature_upper * limits.curvature_to_can) + 1.;
+    max_curvature_lower = (max_curvature_lower * limits.curvature_to_can) - 1.;
     
     // ensure that the curvature error doesn't try to enforce above this limit
-    highest_desired_curvature = CLAMP(highest_desired_curvature, max_curvature_lower,  max_curvature_upper);
-    lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  max_curvature_lower,  max_curvature_upper);
-
-    // Outward‑Rounding
-    highest_desired_curvature += (highest_desired_curvature >= 0) ? 1 : -1;
-    lowest_desired_curvature  += (lowest_desired_curvature  >= 0) ? 1 : -1;
+    highest_desired_curvature = CLAMP(highest_desired_curvature, max_curvature_lower,  max_curvature_upper) + 1;
+    lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  max_curvature_lower,  max_curvature_upper) - 1;
     
     // allow a small tolerance
     highest_desired_curvature += limits.curvature_tolerance_can;
