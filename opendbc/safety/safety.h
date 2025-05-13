@@ -905,8 +905,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  max_curvature_lower,  max_curvature_upper) - 1;
     
     // allow a small tolerance
-    highest_desired_curvature += limits.curvature_tolerance_can;
-    lowest_desired_curvature  -= limits.curvature_tolerance_can;
+    //highest_desired_curvature += limits.curvature_tolerance_can;
+    //lowest_desired_curvature  -= limits.curvature_tolerance_can;
 
     // check for violation;
     violation |= max_limit_check(desired_curvature, highest_desired_curvature, lowest_desired_curvature);
