@@ -875,13 +875,16 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     int lowest_desired_curvature  = (int)(curvature_down  * limits.curvature_to_can);
 
     // ISO lateral limit
-    float max_lat_accel;
     int max_curvature_upper;
     int max_curvature_lower;
     
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      float roll_pos = (float)roll.max / limits.roll_to_can; 
-      float roll_neg = (float)roll.min / limits.roll_to_can;
+      float roll_max = (float)roll.max / limits.roll_to_can; 
+      float roll_min = (float)roll.min / limits.roll_to_can;
+
+      // use numerically loosest roll to ensure some tolerance to ISO boundary
+      float roll_pos = (roll_max > 0) ? roll_min : roll_max;
+      float roll_neg = (roll_min < 0) ? roll_max : roll_min;
 
       float max_lat_accel_pos = ISO_LATERAL_ACCEL - roll_pos * EARTH_G;
       float max_lat_accel_neg = ISO_LATERAL_ACCEL + roll_neg * EARTH_G;
@@ -890,7 +893,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
       max_curvature_lower = (max_lat_accel_neg / (speed * speed) * limits.curvature_to_can);
 
     } else { // OP upstream default, static limit without real roll data
-      max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
+      float max_lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
 
       max_curvature_upper = (max_lat_accel / (speed * speed) * limits.curvature_to_can);
       max_curvature_lower = (max_lat_accel / (speed * speed) * limits.curvature_to_can);
@@ -900,10 +903,10 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     max_curvature_lower += (max_curvature_lower >= 0) ? 1 : -1;
     
     // ensure that the curvature error doesn't try to enforce above this limit
-    if (desired_curvature_last >= 0) {          // Rechtskurve
+    if (desired_curvature_last >= 0) {
       highest_desired_curvature = CLAMP(highest_desired_curvature, -max_curvature_upper,  max_curvature_upper);
       lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  -max_curvature_lower,  max_curvature_lower);
-    } else {                                    // Linkskurve
+    } else {
       highest_desired_curvature = CLAMP(highest_desired_curvature, -max_curvature_lower,  max_curvature_lower);
       lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  -max_curvature_upper,  max_curvature_upper);
     }
