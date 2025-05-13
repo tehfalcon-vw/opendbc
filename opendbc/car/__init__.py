@@ -200,16 +200,8 @@ def apply_std_curvature_limits(apply_curvature: float, apply_curvature_last: flo
                                  
   # Lateral acceleration
   # roll is passed to panda via custom Panda Data CAN message for internal usage only (not sent to car)
-  if apply_curvature_last > 0:  # right curve
-    max_lat_accel = ISO_LATERAL_ACCEL_MARGINED - (roll * ACCELERATION_DUE_TO_GRAVITY)
-    min_lat_accel = -ISO_LATERAL_ACCEL_MARGINED - (roll * ACCELERATION_DUE_TO_GRAVITY)
-  elif apply_curvature_last < 0:  # left curve
-    max_lat_accel = ISO_LATERAL_ACCEL_MARGINED + (roll * ACCELERATION_DUE_TO_GRAVITY)
-    min_lat_accel = -ISO_LATERAL_ACCEL_MARGINED + (roll * ACCELERATION_DUE_TO_GRAVITY)
-  else:
-    max_lat_accel = ISO_LATERAL_ACCEL_MARGINED
-    min_lat_accel = -ISO_LATERAL_ACCEL_MARGINED
-  
+  max_lat_accel = ISO_LATERAL_ACCEL_MARGINED - (roll * ACCELERATION_DUE_TO_GRAVITY)
+  min_lat_accel = -ISO_LATERAL_ACCEL_MARGINED - (roll * ACCELERATION_DUE_TO_GRAVITY)
   max_curvature = max_lat_accel / (max(v_ego, 1.0) ** 2)
   min_curvature = min_lat_accel / (max(v_ego, 1.0) ** 2)
                                  
