@@ -126,7 +126,7 @@ static safety_config volkswagen_meb_init(uint16_t param) {
 static const CurvatureSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
   .max_curvature = 29105, // 0.195 rad/m
   .curvature_to_can = 149253.7313, // 1 / 6.7e-6 rad/m to can
-  .curvature_tolerance_can = 20, // tolerance for rounding/quantization errors ~0.00013 rad/m
+  //.curvature_tolerance_can = 20, // tolerance for rounding/quantization errors ~0.00013 rad/m
   .send_rate = 0.02,
   .inactive_curvature_is_zero = true,
   .roll_to_can = 10000,
