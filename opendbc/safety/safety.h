@@ -878,14 +878,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     float max_curvature_upper, max_curvature_lower;
     
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      //float roll_max = roll.max / limits.roll_to_can; 
-      //float roll_min = roll.min / limits.roll_to_can;
-
-      // use numerically loosest roll to ensure some tolerance to ISO boundary
-      //float roll_loose = (ABS(roll_max) < ABS(roll_min)) ? roll_max : roll_min;
-
-      float max_lat_accel =  ISO_LATERAL_ACCEL - roll[0] * EARTH_G;
-      float min_lat_accel = -ISO_LATERAL_ACCEL - roll[0] * EARTH_G;
+      float max_lat_accel =  ISO_LATERAL_ACCEL - (roll[0] * EARTH_G);
+      float min_lat_accel = -ISO_LATERAL_ACCEL - (roll[0] * EARTH_G);
 
       max_curvature_upper = max_lat_accel / (speed * speed);
       max_curvature_lower = min_lat_accel / (speed * speed);
@@ -923,11 +917,9 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   violation |= desired_steer_power > 0 && !steer_control_enabled;
   violation |= !is_lat_active() && steer_control_enabled && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
   violation |= !is_lat_active() && !steer_control_enabled && desired_steer_power != 0;
-  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power == 0;
 
   desired_curvature_last = desired_curvature;
   desired_steer_power_last = desired_steer_power;
-  //ts_curvature_check_last = ts;
 
   return violation;
 }
