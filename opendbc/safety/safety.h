@@ -878,8 +878,8 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     float max_curvature_upper, max_curvature_lower;
     
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      float max_lat_accel =  ISO_LATERAL_ACCEL - (roll[0] * EARTH_G);
-      float min_lat_accel = -ISO_LATERAL_ACCEL - (roll[0] * EARTH_G);
+      float max_lat_accel =  ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
+      float min_lat_accel = -ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
 
       max_curvature_upper = max_lat_accel / (speed * speed);
       max_curvature_lower = min_lat_accel / (speed * speed);
