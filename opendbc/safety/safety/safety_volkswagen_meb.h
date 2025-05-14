@@ -129,7 +129,7 @@ static const CurvatureSteeringLimits VOLKSWAGEN_MEB_STEERING_LIMITS = {
   //.curvature_tolerance_can = 20, // tolerance for rounding/quantization errors ~0.00013 rad/m
   .send_rate = 0.02,
   .inactive_curvature_is_zero = true,
-  .roll_to_can = 10000,
+  .roll_to_can = 10000.0,
   .use_roll_data = true,
 };
 
