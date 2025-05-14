@@ -851,7 +851,7 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
 }
 
 // Safety checks for curvature-based steering commands
-bool steer_curvature_cmd_checks_f(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits) {
+bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits) {
   static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2, Maximum lateral acceleration as per ISO 11270
   static const float MAX_LATERAL_JERK  = 5.0;  // m/s^3, Maximum jerk as per ISO 11270
   static const float EARTH_G           = 9.81;
@@ -878,14 +878,14 @@ bool steer_curvature_cmd_checks_f(int desired_curvature, int desired_steer_power
     float max_curvature_upper, max_curvature_lower;
     
     if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      float roll_max = roll.max / limits.roll_to_can; 
-      float roll_min = roll.min / limits.roll_to_can;
+      //float roll_max = roll.max / limits.roll_to_can; 
+      //float roll_min = roll.min / limits.roll_to_can;
 
       // use numerically loosest roll to ensure some tolerance to ISO boundary
-      float roll_loose = (ABS(roll_max) < ABS(roll_min)) ? roll_max : roll_min;
+      //float roll_loose = (ABS(roll_max) < ABS(roll_min)) ? roll_max : roll_min;
 
-      float max_lat_accel =  ISO_LATERAL_ACCEL - roll_loose * EARTH_G;
-      float min_lat_accel = -ISO_LATERAL_ACCEL - roll_loose * EARTH_G;
+      float max_lat_accel =  ISO_LATERAL_ACCEL - roll[0] * EARTH_G;
+      float min_lat_accel = -ISO_LATERAL_ACCEL - roll[0] * EARTH_G;
 
       max_curvature_upper = max_lat_accel / (speed * speed);
       max_curvature_lower = min_lat_accel / (speed * speed);
@@ -929,73 +929,6 @@ bool steer_curvature_cmd_checks_f(int desired_curvature, int desired_steer_power
   desired_steer_power_last = desired_steer_power;
   //ts_curvature_check_last = ts;
 
-  return violation;
-}
-
-// Integer math as far as possible
-bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits) {
-  // Fixed-point constants
-  const int FIXEDPOINT_FACTOR = 1000;                  // scaling factor for speed, accel, jerk
-  const int ISO_LATERAL_ACCEL = 3 * FIXEDPOINT_FACTOR; // 3.0 m/s^2
-  const int MAX_LATERAL_JERK  = 5 * FIXEDPOINT_FACTOR; // 5.0 m/s^3
-  const int EARTH_G           = 9810;                  // 9.81 m/s^2 * 1000
-  const int AVERAGE_ROAD_ROLL = 600;                   // 0.06 rad * 10000
-
-  bool violation = false;
-
-  if (is_lat_active() && steer_control_enabled) {
-    violation |= max_limit_check(desired_curvature, limits.max_curvature, -limits.max_curvature);
-
-    int speed = MAX(vehicle_speed.min, 1 * FIXEDPOINT_FACTOR) - 1 * FIXEDPOINT_FACTOR;
-    int speed_sq = speed * speed;
-
-    int curvature_rate_limit = (MAX_LATERAL_JERK * FIXEDPOINT_FACTOR) / speed_sq;
-    int curvature_last = desired_curvature_last;
-    int curvature_up   = curvature_last + (int)(curvature_rate_limit * limits.send_rate);
-    int curvature_down = curvature_last - (int)(curvature_rate_limit * limits.send_rate);
-
-    int highest_desired_curvature = curvature_up + 1;
-    int lowest_desired_curvature  = curvature_down - 1;
-
-    int max_lat_accel, min_lat_accel;
-
-    if (limits.use_roll_data) {
-      int roll_max = roll.max;
-      int roll_min = roll.min;
-      int roll_loose = (ABS(roll_max) < ABS(roll_min)) ? roll_max : roll_min;
-
-      int roll_component = (roll_loose * EARTH_G) / limits.roll_to_can;
-      max_lat_accel = ISO_LATERAL_ACCEL - roll_component;
-      min_lat_accel = -ISO_LATERAL_ACCEL - roll_component;
-    } else {
-      int roll_component = (EARTH_G * AVERAGE_ROAD_ROLL) / limits.roll_to_can;
-      max_lat_accel = ISO_LATERAL_ACCEL - roll_component;
-      min_lat_accel = -ISO_LATERAL_ACCEL - roll_component;
-    }
-
-    int max_curvature_upper = (max_lat_accel * FIXEDPOINT_FACTOR) / speed_sq;
-    int max_curvature_lower = (min_lat_accel * FIXEDPOINT_FACTOR) / speed_sq;
-
-    highest_desired_curvature = CLAMP(highest_desired_curvature, max_curvature_lower, max_curvature_upper) + 1;
-    lowest_desired_curvature  = CLAMP(lowest_desired_curvature, max_curvature_lower, max_curvature_upper) - 1;
-
-    violation |= max_limit_check(desired_curvature, highest_desired_curvature, lowest_desired_curvature);
-  }
-
-  if (!steer_control_enabled) {
-    const int max_inactive_curvature = CLAMP(curvature_meas.max, -limits.max_curvature, limits.max_curvature) + 1;
-    const int min_inactive_curvature = CLAMP(curvature_meas.min, -limits.max_curvature, limits.max_curvature) - 1;
-    violation |= (limits.inactive_curvature_is_zero ? (desired_curvature != 0) :
-                  max_limit_check(desired_curvature, max_inactive_curvature, min_inactive_curvature));
-  }
-
-  violation |= desired_steer_power > 0 && !steer_control_enabled;
-  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power != 0 && desired_steer_power >= desired_steer_power_last;
-  violation |= !is_lat_active() && !steer_control_enabled && desired_steer_power != 0;
-  violation |= !is_lat_active() && steer_control_enabled && desired_steer_power == 0;
-
-  desired_curvature_last = desired_curvature;
-  desired_steer_power_last = desired_steer_power;
   return violation;
 }
 
