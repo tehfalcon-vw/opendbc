@@ -83,7 +83,6 @@ struct sample_t roll; // last 6 roll values
 struct sample_t curvature_meas;         // last 6 steer curvatures
 int desired_curvature_last = 0;
 int desired_steer_power_last = 0;
-uint32_t ts_curvature_check_last = 0;
 
 int alternative_experience = 0;
 
@@ -467,7 +466,6 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
   invalid_steer_req_count = 0;
   desired_curvature_last = 0;
   desired_steer_power_last = 0;
-  ts_curvature_check_last = 0;
 
   // reset samples
   reset_sample(&vehicle_speed);
@@ -855,7 +853,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2, Maximum lateral acceleration as per ISO 11270
   static const float MAX_LATERAL_JERK  = 5.0;  // m/s^3, Maximum jerk as per ISO 11270
   static const float EARTH_G           = 9.81;
-  static const float AVERAGE_ROAD_ROLL = 0.06;  // ~3.4 degrees, 6% superelevation
+  static const float AVERAGE_ROAD_ROLL = 0.06; // ~3.4 degrees, 6% superelevation
   
   bool violation = false;
 
@@ -897,10 +895,6 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     // ensure that the curvature error doesn't try to enforce above this limit
     highest_desired_curvature = CLAMP(highest_desired_curvature, max_curvature_lower,  max_curvature_upper) + 1;
     lowest_desired_curvature  = CLAMP(lowest_desired_curvature,  max_curvature_lower,  max_curvature_upper) - 1;
-    
-    // allow a small tolerance
-    //highest_desired_curvature += limits.curvature_tolerance_can;
-    //lowest_desired_curvature  -= limits.curvature_tolerance_can;
 
     // check for violation;
     violation |= max_limit_check(desired_curvature, highest_desired_curvature, lowest_desired_curvature);
