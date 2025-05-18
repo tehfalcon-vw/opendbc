@@ -140,7 +140,6 @@ typedef struct {
   const float send_rate;
   const bool inactive_curvature_is_zero; // if false, enforces angle near meas when disabled (default)
   const float roll_to_can;
-  const bool use_roll_data;              // if true: use roll data from OP, false: use static roll (upstream logic)
 } CurvatureSteeringLimits;
 
 typedef struct {
