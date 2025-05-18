@@ -853,7 +853,6 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
   static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2, Maximum lateral acceleration as per ISO 11270
   static const float MAX_LATERAL_JERK  = 5.0;  // m/s^3, Maximum jerk as per ISO 11270
   static const float EARTH_G           = 9.81;
-  static const float AVERAGE_ROAD_ROLL = 0.06; // ~3.4 degrees, 6% superelevation
   
   bool violation = false;
 
@@ -872,22 +871,13 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     int highest_desired_curvature = (curvature_up   * limits.curvature_to_can) + 1.;
     int lowest_desired_curvature  = (curvature_down * limits.curvature_to_can) - 1.;
 
-    // ISO lateral limit
-    float max_curvature_upper, max_curvature_lower;
-    
-    if (limits.use_roll_data) { // dynamic roll from OP via CAN
-      float max_lat_accel =  ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
-      float min_lat_accel = -ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
+    // ISO lateral limit    
+    //dynamic roll from OP via CAN
+    float max_lat_accel =  ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
+    float min_lat_accel = -ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
 
-      max_curvature_upper = max_lat_accel / (speed * speed);
-      max_curvature_lower = min_lat_accel / (speed * speed);
-
-    } else { // OP upstream default, static limit without real roll data
-      float lat_accel = ISO_LATERAL_ACCEL - (EARTH_G * AVERAGE_ROAD_ROLL); // ~2.4 m/s^2
-
-      max_curvature_upper =  lat_accel / (speed * speed);
-      max_curvature_lower = -lat_accel / (speed * speed);
-    }
+    float max_curvature_upper = max_lat_accel / (speed * speed);
+    float max_curvature_lower = min_lat_accel / (speed * speed);
 
     max_curvature_upper = (max_curvature_upper * limits.curvature_to_can) + 1.;
     max_curvature_lower = (max_curvature_lower * limits.curvature_to_can) - 1.;
