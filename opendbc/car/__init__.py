@@ -16,7 +16,6 @@ STD_CARGO_KG = 136.
 
 ACCELERATION_DUE_TO_GRAVITY = 9.81  # m/s^2
 ISO_LATERAL_ACCEL = 3.0 # ISO 11270
-ISO_LATERAL_ACCEL_MARGINED = ISO_LATERAL_ACCEL - 0.1 # ensure not running into edge of boundary problems in panda safety
 ISO_LATERAL_JERK = 5.0 # ISO 11270
 
 ButtonType = structs.CarState.ButtonEvent.Type
@@ -200,8 +199,8 @@ def apply_std_curvature_limits(apply_curvature: float, apply_curvature_last: flo
                                  
   # Lateral acceleration
   # roll is passed to panda via custom Panda Data CAN message for internal usage only (not sent to car)
-  max_lat_accel = ISO_LATERAL_ACCEL_MARGINED - (roll * ACCELERATION_DUE_TO_GRAVITY)
-  min_lat_accel = -ISO_LATERAL_ACCEL_MARGINED - (roll * ACCELERATION_DUE_TO_GRAVITY)
+  max_lat_accel = ISO_LATERAL_ACCEL - (roll * ACCELERATION_DUE_TO_GRAVITY)
+  min_lat_accel = -ISO_LATERAL_ACCEL - (roll * ACCELERATION_DUE_TO_GRAVITY)
   max_curvature = max_lat_accel / (max(v_ego, 1.0) ** 2)
   min_curvature = min_lat_accel / (max(v_ego, 1.0) ** 2)
                                  
