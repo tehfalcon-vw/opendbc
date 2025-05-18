@@ -267,11 +267,11 @@ class CarState(CarStateBase):
     # Update EPS position and state info. For signed values, VW sends the sign in a separate signal.
     # LWI_01, MEP_EPS_01 steering angle differs from real steering angle (dynamic steering)
     ret.steeringAngleDeg = pt_cp.vl["LWI_01"]["LWI_Lenkradwinkel"] * (1, -1)[int(pt_cp.vl["LWI_01"]["LWI_VZ_Lenkradwinkel"])]
-    ret.steeringRateDeg = pt_cp.vl["LWI_01"]["LWI_Lenkradw_Geschw"] * (1, -1)[int(pt_cp.vl["LWI_01"]["LWI_VZ_Lenkradw_Geschw"])]
-    ret.steeringTorque = pt_cp.vl["LH_EPS_03"]["EPS_Lenkmoment"] * (1, -1)[int(pt_cp.vl["LH_EPS_03"]["EPS_VZ_Lenkmoment"])]
-    ret.steeringPressed = abs(ret.steeringTorque) > self.CCP.STEER_DRIVER_ALLOWANCE
+    ret.steeringRateDeg  = pt_cp.vl["LWI_01"]["LWI_Lenkradw_Geschw"] * (1, -1)[int(pt_cp.vl["LWI_01"]["LWI_VZ_Lenkradw_Geschw"])]
+    ret.steeringTorque   = pt_cp.vl["LH_EPS_03"]["EPS_Lenkmoment"] * (1, -1)[int(pt_cp.vl["LH_EPS_03"]["EPS_VZ_Lenkmoment"])]
+    ret.steeringPressed  = abs(ret.steeringTorque) > self.CCP.STEER_DRIVER_ALLOWANCE
     
-    ret.yawRate = pt_cp.vl["ESC_50"]["Yaw_Rate"] * (1, -1)[int(pt_cp.vl["ESC_50"]["Yaw_Rate_Sign"])] * CV.DEG_TO_RAD
+    ret.yawRate    = pt_cp.vl["ESC_50"]["Yaw_Rate"] * (1, -1)[int(pt_cp.vl["ESC_50"]["Yaw_Rate_Sign"])] * CV.DEG_TO_RAD
     self.curvature = -pt_cp.vl["QFK_01"]["Curvature"] * (1, -1)[int(pt_cp.vl["QFK_01"]["Curvature_VZ"])]
     
     hca_status = self.CCP.hca_status_values.get(pt_cp.vl["QFK_01"]["LatCon_HCA_Status"])
@@ -279,13 +279,14 @@ class CarState(CarStateBase):
 
     # VW Emergency Assist status tracking and mitigation
     self.eps_stock_values = pt_cp.vl["LH_EPS_03"]
+    self.klr_stock_values = pt_cp.vl["KLR_01"] if self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT else {}
     #ret.carFaultedNonCritical = cam_cp.vl["EA_01"]["EA_Funktionsstatus"] in (3, 4, 5, 6) # prepared, not tested
 
     # Update gas, brakes, and gearshift.
-    ret.gasPressed = pt_cp.vl["Motor_54"]["Accelerator_Pressure"] > 0
-    ret.gas = pt_cp.vl["Motor_54"]["Accelerator_Pressure"]
+    ret.gasPressed   = pt_cp.vl["Motor_54"]["Accelerator_Pressure"] > 0
+    ret.gas          = pt_cp.vl["Motor_54"]["Accelerator_Pressure"]
     ret.brakePressed = bool(pt_cp.vl["Motor_14"]["MO_Fahrer_bremst"]) # includes regen braking by user
-    ret.brake = pt_cp.vl["ESC_51"]["Brake_Pressure"]
+    ret.brake        = pt_cp.vl["ESC_51"]["Brake_Pressure"]
     ret.parkingBrake = pt_cp.vl["Gateway_73"]["EPB_Status"] in (1, 4) # EPB closing or closed
     ret.regenBraking = bool(pt_cp.vl["ESC_50"]['Regen_Braking'])
 
@@ -305,7 +306,7 @@ class CarState(CarStateBase):
     # Consume blind-spot monitoring info/warning LED states, if available.
     # Infostufe: BSM LED on, Warnung: BSM LED flashing
     if self.CP.enableBsm:
-      ret.leftBlindspot = bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Info_Left"]) or bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Warn_Left"])
+      ret.leftBlindspot  = bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Info_Left"]) or bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Warn_Left"])
       ret.rightBlindspot = bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Info_Right"]) or bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Warn_Right"])
 
     # Consume factory LDW data relevant for factory SWA (Lane Change Assist)
@@ -315,7 +316,7 @@ class CarState(CarStateBase):
     ret.stockFcw = bool(ext_cp.vl["AWV_03"]["FCW_Active"]) # currently most plausible candidate
     ret.stockAeb = False #bool(pt_cp.vl["VMM_02"]["AEB_Active"]) TODO find correct signal
 
-    self.acc_type = ext_cp.vl["ACC_18"]["ACC_Typ"]
+    self.acc_type                = ext_cp.vl["ACC_18"]["ACC_Typ"]
     self.travel_assist_available = bool(cam_cp.vl["TA_01"]["Travel_Assist_Available"])
 
     ret.cruiseState.available = pt_cp.vl["Motor_51"]["TSK_Status"] in (2, 3, 4, 5)
@@ -352,19 +353,18 @@ class CarState(CarStateBase):
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
     # turn signal effect
-    self.left_blinker_active = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
+    self.left_blinker_active  = bool(pt_cp.vl["Blinkmodi_02"]["BM_links"])
     self.right_blinker_active = bool(pt_cp.vl["Blinkmodi_02"]["BM_rechts"])
     # turn signal cause
-    ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_stalk(300, pt_cp.vl["SMLS_01"]["BH_Blinker_li"],
+    ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_stalk(240, pt_cp.vl["SMLS_01"]["BH_Blinker_li"],
                                                                             pt_cp.vl["SMLS_01"]["BH_Blinker_re"])
     ret.buttonEvents = self.create_button_events(pt_cp, self.CCP.BUTTONS)
+    
     self.gra_stock_values = pt_cp.vl["GRA_ACC_01"]
-
-    self.klr_stock_values = pt_cp.vl["KLR_01"] if self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT else {}
 
     # Additional safety checks performed in CarInterface.
     ret.espDisabled = bool(pt_cp.vl["ESP_21"]["ESP_Tastung_passiv"]) # this is also true for ESC Sport mode
-    ret.espActive = bool(pt_cp.vl["ESP_21"]["ESP_Eingriff"])
+    ret.espActive   = bool(pt_cp.vl["ESP_21"]["ESP_Eingriff"])
 
     self.ea_hud_stock_values = cam_cp.vl["EA_02"]
 
@@ -374,11 +374,11 @@ class CarState(CarStateBase):
     ret.batteryDetails.charge = pt_cp.vl["Motor_16"]["MO_Energieinhalt_BMS"] # battery charge WattHours
     if self.CP.networkLocation == NetworkLocation.gateway:
       ret.batteryDetails.heaterActive = bool(main_cp.vl["MEB_HVEM_03"]["PTC_ON"]) # battery heater active
-      ret.batteryDetails.voltage = main_cp.vl["MEB_HVEM_01"]["Battery_Voltage"] # battery voltage
-      ret.batteryDetails.capacity = main_cp.vl["BMS_04"]["BMS_Kapazitaet_02"] * 355 # EV battery capacity Ah * nominal voltage cupra born WattHours
-      ret.batteryDetails.soc = ret.batteryDetails.charge / ret.batteryDetails.capacity * 100 if ret.batteryDetails.capacity > 0 else 0 # battery SoC in percent
-      ret.batteryDetails.power = main_cp.vl["MEB_HVEM_01"]["Engine_Power"] # engine power output
-      ret.batteryDetails.temperature = main_cp.vl["DCDC_03"]["DC_Temperatur"] # dcdc converter temperature
+      ret.batteryDetails.voltage      = main_cp.vl["MEB_HVEM_01"]["Battery_Voltage"] # battery voltage
+      ret.batteryDetails.capacity     = main_cp.vl["BMS_04"]["BMS_Kapazitaet_02"] * 355 # EV battery capacity Ah * nominal voltage cupra born WattHours
+      ret.batteryDetails.soc          = ret.batteryDetails.charge / ret.batteryDetails.capacity * 100 if ret.batteryDetails.capacity > 0 else 0 # battery SoC in percent
+      ret.batteryDetails.power        = main_cp.vl["MEB_HVEM_01"]["Engine_Power"] # engine power output
+      ret.batteryDetails.temperature  = main_cp.vl["DCDC_03"]["DC_Temperatur"] # dcdc converter temperature
 
     self.frame += 1
     return ret
