@@ -201,6 +201,7 @@ BO_ 252 ESC_51: 48 XXX
  SG_ VR_Brake_Pressure : 176|8@1+ (1,0) [0|100] "" XXX
  SG_ Steering_Wheel_CW : 184|8@1+ (1.67,0) [0|255] "" XXX
  SG_ Steering_Wheel_CCW : 192|8@1+ (1.67,0) [0|255] "" XXX
+ SG_ ESC_v_Signal : 328|11@1+ (0.05152,0) [0|63] "" XXX
 
 BO_ 253 ESP_21: 8 Gateway
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" Vector__XXX

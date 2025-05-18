@@ -116,14 +116,14 @@ class CarController(CarControllerBase):
           actuator_curvature_with_offset = actuators.curvature + (CS.curvature - CC.currentCurvature)
           apply_curvature, iso_limit_active = apply_std_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, CC.rollDEPRECATED, CS.curvature,
                                                                          self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
-          if CS.out.steeringPressed: # roughly sync curvature when user overrides
-            apply_curvature = np.clip(apply_curvature, current_curvature - self.CCP.CURVATURE_ERROR, current_curvature + self.CCP.CURVATURE_ERROR)
-            apply_curvature = np.clip(apply_curvature, -self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX)
+          #if CS.out.steeringPressed: # roughly sync curvature when user overrides
+          #  apply_curvature = np.clip(apply_curvature, current_curvature - self.CCP.CURVATURE_ERROR, current_curvature + self.CCP.CURVATURE_ERROR)
+          #  apply_curvature = np.clip(apply_curvature, -self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX)
 
-          steering_power_min_by_speed = np.interp(CS.out.vEgoRaw, [0, self.CCP.STEERING_POWER_MAX_BY_SPEED], [self.CCP.STEERING_POWER_MIN, self.CCP.STEERING_POWER_MAX]) # base level
+          steering_power_min_by_speed = np.interp(CS.out.vEgo, [0, self.CCP.STEERING_POWER_MAX_BY_SPEED], [self.CCP.STEERING_POWER_MIN, self.CCP.STEERING_POWER_MAX]) # base level
           steering_curvature_diff = abs(apply_curvature - current_curvature) # keep power high at very low speed for both directions
           steering_curvature_increase = max(0, abs(apply_curvature) - abs(current_curvature)) # increase power for increasing steering at normal driving speeds
-          steering_curvature_change = np.interp(CS.out.vEgoRaw, [0., 3.], [steering_curvature_diff, steering_curvature_increase]) # maximum power seems to inhibit steering movement, decreasing does not increase power
+          steering_curvature_change = np.interp(CS.out.vEgo, [0., 3.], [steering_curvature_diff, steering_curvature_increase]) # maximum power seems to inhibit steering movement, decreasing does not increase power
           steering_power_target_curvature = steering_power_min_by_speed + self.CCP.CURVATURE_POWER_FACTOR * (steering_curvature_change + abs(apply_curvature)) # abs apply_curvature level keeps steering in place
           steering_power_target = np.clip(steering_power_target_curvature, self.CCP.STEERING_POWER_MIN, self.CCP.STEERING_POWER_MAX)
 
@@ -213,15 +213,15 @@ class CarController(CarControllerBase):
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
     # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle
-    #if self.CP.flags & VolkswagenFlags.MEB:
+    if self.CP.flags & VolkswagenFlags.MEB:
       # synchronizing blinker cycle to car
       # resend at least 2 frames after a full cycle to not trigger hazards of "Wechselblinken" function (VW MEB full cycle: 0.8 seconds)
-      #blinker_timeout_done = self.blinker_timeout_counter >= 2
-      #self.blinker_timeout_counter = 0 if CS.out.leftBlinker or CS.out.rightBlinker or blinker_timeout_done else self.blinker_timeout_counter + 1
-      #if self.frame % 2 == 0:
-      #  left_blinker = CC.leftBlinker and blinker_timeout_done
-      #  right_blinker = CC.rightBlinker and blinker_timeout_done
-      #  can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=left_blinker, right_blinker=right_blinker))
+      blinker_timeout_done = self.blinker_timeout_counter >= 2
+      self.blinker_timeout_counter = 0 if CS.left_blinker_active or CS.right_blinker_active or blinker_timeout_done else self.blinker_timeout_counter + 1
+      if self.frame % 2 == 0:
+        left_blinker = CC.leftBlinker and blinker_timeout_done
+        right_blinker = CC.rightBlinker and blinker_timeout_done
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=left_blinker, right_blinker=right_blinker))
 
     # **** Cruise Controls ************************************************** #
     
@@ -255,7 +255,7 @@ class CarController(CarControllerBase):
           self.long_disabled_counter = min(self.long_disabled_counter + 1, 5) if not CC.enabled else 0
           long_disabling = not CC.enabled and self.long_disabled_counter < 5
 
-          upper_control_limit, lower_control_limit = get_long_control_limits(CS.out.vEgoRaw, hud_control.setSpeed, hud_control.leadDistance) if CC.enabled else (0, 0)
+          upper_control_limit, lower_control_limit = get_long_control_limits(CS.out.vEgo, hud_control.setSpeed, hud_control.leadDistance) if CC.enabled else (0, 0)
           upper_jerk, lower_jerk, self.long_jerk_last = get_long_jerk_limits(accel, self.accel_last, CS.out.aEgo, DT_CTRL * self.CCP.ACC_CONTROL_STEP, self.long_jerk_last, long_override) if CC.enabled else (0, 0, 0)
         
           acc_control = self.CCS.acc_control_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled,
