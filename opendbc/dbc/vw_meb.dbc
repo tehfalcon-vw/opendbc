@@ -187,14 +187,17 @@ BO_ 247 MEB_HVEM_02: 8 XXX
 BO_ 252 ESC_51: 48 XXX
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
+ SG_ NEW_SIGNAL_2 : 14|6@1+ (1,0) [0|3] "" XXX
  SG_ AEB_Breaking_01 : 24|8@1+ (1,0) [0|255] "" XXX
  SG_ AEB_Breaking_02 : 32|8@1+ (1,0) [0|255] "" XXX
  SG_ Accelerator_Higher_Speed : 40|1@0+ (1,0) [0|1] "" XXX
  SG_ Brake_Pressure : 42|9@1+ (0.195,0) [0|100] "Unit_Percent" XXX
+ SG_ NEW_SIGNAL_1 : 52|8@1+ (1,0) [0|15] "" XXX
  SG_ HL_Radgeschw : 64|16@1+ (0.0075,0) [0|491.5125] "Unit_KilometerPerHour" XXX
  SG_ HR_Radgeschw : 80|16@1+ (0.0075,0) [0|491.5125] "Unit_KilometerPerHour" XXX
  SG_ VL_Radgeschw : 96|16@1+ (0.0075,0) [0|491.5125] "Unit_KilometerPerHour" XXX
  SG_ VR_Radgeschw : 112|16@1+ (0.0075,0) [0|491.5125] "Unit_KilometerPerHour" XXX
+ SG_ NEW_SIGNAL_3 : 128|4@1+ (1,0) [0|15] "" XXX
  SG_ HL_Brake_Pressure : 152|8@1+ (1,0) [0|100] "" XXX
  SG_ HR_Brake_Pressure : 160|8@1+ (1,0) [0|100] "" XXX
  SG_ VL_Brake_Pressure : 168|8@1+ (1,0) [0|100] "" XXX
@@ -202,6 +205,7 @@ BO_ 252 ESC_51: 48 XXX
  SG_ Steering_Wheel_CW : 184|8@1+ (1.67,0) [0|255] "" XXX
  SG_ Steering_Wheel_CCW : 192|8@1+ (1.67,0) [0|255] "" XXX
  SG_ ESC_v_Signal : 328|11@1+ (0.05152,0) [0|63] "" XXX
+ SG_ NEW_SIGNAL_4 : 342|12@1+ (1,0) [0|3] "" XXX
 
 BO_ 253 ESP_21: 8 Gateway
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" Vector__XXX
@@ -234,9 +238,16 @@ BO_ 258 ESC_50: 48 XXX
  SG_ Longitudinal_Accel : 24|10@1+ (0.03125,-16) [0|255] "Unit_MeterPerSquareSecond" XXX
  SG_ Yaw_Rate : 40|14@1+ (0.01,0) [0|16383] "Unit_DegreePerSecond" XXX
  SG_ Yaw_Rate_Sign : 54|1@0+ (1,0) [0|1] "" XXX
+ SG_ Brake_Power : 80|8@1+ (1,-100) [0|255] "" XXX
+ SG_ Brake_01 : 90|1@0+ (1,0) [0|1] "" XXX
  SG_ Regen_Braking : 123|1@1+ (1,0) [0|7] "" XXX
+ SG_ Brake_02 : 125|1@0+ (1,0) [0|1] "" XXX
  SG_ Standstill : 171|1@0+ (1,0) [0|1] "" XXX
+ SG_ NEW_SIGNAL_3 : 180|1@0+ (1,0) [0|1] "" XXX
  SG_ Longitudinal_Speed : 181|10@1+ (0.25,0) [0|255] "Unit_KilometerPerHour" XXX
+ SG_ Brake_Power_02 : 226|8@1+ (1,-100) [0|63] "" XXX
+ SG_ NEW_SIGNAL_2 : 236|9@1+ (1,0) [0|7] "" XXX
+ SG_ NEW_SIGNAL_1 : 248|4@1+ (1,0) [0|15] "" XXX
 
 BO_ 261 VMM_01: 8 XXX
  SG_ CRC : 0|8@1+ (1,0) [0|255] "" XXX
