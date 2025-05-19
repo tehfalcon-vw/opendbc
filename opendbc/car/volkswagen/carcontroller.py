@@ -216,8 +216,8 @@ class CarController(CarControllerBase):
       blinker_timeout_done = self.blinker_timeout_counter >= 2
       self.blinker_timeout_counter = 0 if CS.left_blinker_active or CS.right_blinker_active or blinker_timeout_done else self.blinker_timeout_counter + 1
       if self.frame % 2 == 0:
-        left_blinker = CC.leftBlinker and blinker_timeout_done
-        right_blinker = CC.rightBlinker and blinker_timeout_done
+        left_blinker = True if not CS.left_blinker_active else False #and blinker_timeout_done
+        right_blinker = CC.rightBlinker if not CS.right_blinker_active else False #and blinker_timeout_done
         can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=left_blinker, right_blinker=right_blinker))
 
     # **** Cruise Controls ************************************************** #
