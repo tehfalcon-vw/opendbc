@@ -213,7 +213,7 @@ class CarController(CarControllerBase):
     # signaling indicators for 1 frame to trigger the first non hazard cycle, retrigger after the car signals a fully ended cycle
     if self.CP.flags & VolkswagenFlags.MEB:
       if self.frame % 2 == 0:
-        left_blinker = CC.leftBlinker if not CS.left_blinker_active else False
+        left_blinker = True if not CS.left_blinker_active else False
         right_blinker = CC.rightBlinker if not CS.right_blinker_active else False
         can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker, right_blinker))
 
