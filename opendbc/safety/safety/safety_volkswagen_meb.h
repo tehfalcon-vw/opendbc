@@ -4,7 +4,6 @@
 #include "safety_volkswagen_common.h"
 
 #define MSG_ESC_51           0xFC    // RX, for wheel speeds
-#define MSG_ESC_50           0x102   // RX, for regen braking
 #define MSG_Motor_54         0x14C   // RX, for accel pedal
 #define MSG_HCA_03           0x303   // TX by OP, Heading Control Assist steering torque
 #define MSG_QFK_01           0x13D   // RX, for steering angle
@@ -67,8 +66,6 @@ static uint32_t volkswagen_meb_compute_crc(const CANPacket_t *to_push) {
     crc ^= (uint8_t[]){0x6A,0x38,0xB4,0x27,0x22,0xEF,0xE1,0xBB,0xF8,0x80,0x84,0x49,0xC7,0x9E,0x1E,0x2B}[counter];
   } else if (addr == MSG_QFK_01) {
     crc ^= (uint8_t[]){0x20,0xCA,0x68,0xD5,0x1B,0x31,0xE2,0xDA,0x08,0x0A,0xD4,0xDE,0x9C,0xE4,0x35,0x5B}[counter];
-  } else if (addr == MSG_ESC_50) {
-    crc ^= (uint8_t[]){0xD7,0x12,0x85,0x7E,0x0B,0x34,0xFA,0x16,0x7A,0x25,0x2D,0x8F,0x04,0x8E,0x5D,0x35}[counter];
   } else if (addr == MSG_ESC_51) {
     crc ^= (uint8_t[]){0x77,0x5C,0xA0,0x89,0x4B,0x7C,0xBB,0xD6,0x1F,0x6C,0x4F,0xF6,0x20,0x2B,0x43,0xDD}[counter];
   } else if (addr == MSG_Motor_54) {
@@ -108,7 +105,6 @@ static safety_config volkswagen_meb_init(uint16_t param) {
     {.msg = {{MSG_Motor_51, 0, 32, .max_counter = 15U, .frequency = 50U}, { 0 }, { 0 }}},
     {.msg = {{MSG_GRA_ACC_01, 0, 8, .max_counter = 15U, .frequency = 33U}, { 0 }, { 0 }}},
     {.msg = {{MSG_QFK_01, 0, 32, .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
-    {.msg = {{MSG_ESC_50, 0, 48, .max_counter = 15U, .frequency = 50U}, { 0 }, { 0 }}},
     {.msg = {{MSG_ESC_51, 0, 48, .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{MSG_Motor_54, 0, 32, .max_counter = 15U, .frequency = 10U}, { 0 }, { 0 }}},
   };
@@ -216,11 +212,6 @@ static void volkswagen_meb_rx_hook(const CANPacket_t *to_push) {
     // update brake pedal
     if (addr == MSG_MOTOR_14) {
       brake_pressed = GET_BIT(to_push, 28U);
-    }
-
-    // Update regen braking
-    if (addr == MSG_ESC_50) {
-      regen_braking = GET_BIT(to_push, 123U);
     }
 
     // update accel pedal
