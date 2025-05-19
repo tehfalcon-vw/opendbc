@@ -89,7 +89,6 @@ class CarController(CarControllerBase):
     self.gra_enabled = False
     self.gra_up = False
     self.gra_down = False
-    self.blinker_timeout_counter = 0
 
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
@@ -209,16 +208,13 @@ class CarController(CarControllerBase):
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
-    # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle
+    # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle (VW MEB full cycle: 0.8 seconds)
+    # user input has hgher prio than EA indicating, post cycle handover is done via actual indicator signal
     if self.CP.flags & VolkswagenFlags.MEB:
-      # synchronizing blinker cycle to car
-      # resend at least 2 frames after a full cycle to not trigger hazards of "Wechselblinken" function (VW MEB full cycle: 0.8 seconds)
-      blinker_timeout_done = self.blinker_timeout_counter >= 2
-      self.blinker_timeout_counter = 0 if CS.left_blinker_active or CS.right_blinker_active or blinker_timeout_done else self.blinker_timeout_counter + 1
       if self.frame % 2 == 0:
-        left_blinker = True if not CS.left_blinker_active else False #and blinker_timeout_done
-        right_blinker = CC.rightBlinker if not CS.right_blinker_active else False #and blinker_timeout_done
-        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, True, left_blinker=left_blinker, right_blinker=right_blinker))
+        left_blinker = CC.leftBlinker if not CS.left_blinker_active else False # signaling indicator for 1 frame
+        right_blinker = CC.rightBlinker if not CS.right_blinker_active else False
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker, right_blinker))
 
     # **** Cruise Controls ************************************************** #
     
