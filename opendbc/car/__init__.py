@@ -30,10 +30,7 @@ class AngleSteeringLimits:
 @dataclass
 class CurvatureSteeringLimits:
   CURVATURE_MAX: float
-  CURVATURE_RATE_LIMIT_ACTIVE: bool
-  CURVATURE_RATE_LIMIT_UP: tuple[list[float], list[float]]
-  CURVATURE_RATE_LIMIT_DOWN: tuple[list[float], list[float]]
-
+  
 
 def apply_hysteresis(val: float, val_steady: float, hyst_gap: float) -> float:
   if val > val_steady + hyst_gap:
