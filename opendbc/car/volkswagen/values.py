@@ -86,9 +86,6 @@ class CarControllerParams:
       
       self.CURVATURE_LIMITS: CurvatureSteeringLimits = CurvatureSteeringLimits(
         0.195,  # Max curvature for steering command, m^-1
-        False, # rate limits below are ignored, using only iso jerk limiting
-        ([5, 25], [0.0015, 0.00015]), # curvature safety limit up
-        ([5, 25], [0.002, 0.00035]) # curvature safety limit down
       )
 
       self.shifter_values    = can_define.dv["Getriebe_11"]["GE_Fahrstufe"]
