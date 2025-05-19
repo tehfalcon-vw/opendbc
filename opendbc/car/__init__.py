@@ -180,14 +180,6 @@ def apply_std_curvature_limits(apply_curvature: float, apply_curvature_last: flo
 
   new_apply_curvature = apply_curvature
                                  
-  # pick curvature rate limits based on wind up/down
-  if limits.CURVATURE_RATE_LIMIT_ACTIVE:
-    steer_up = apply_curvature_last * new_apply_curvature >= 0. and abs(new_apply_curvature) > abs(apply_curvature_last)
-    rate_limits = limits.CURVATURE_RATE_LIMIT_UP if steer_up else limits.CURVATURE_RATE_LIMIT_DOWN
-    curvature_rate_lim = np.interp(v_ego, rate_limits[0], rate_limits[1])
-    
-    new_apply_curvature = np.clip(new_apply_curvature, apply_curvature_last - curvature_rate_lim, apply_curvature_last + curvature_rate_lim)
-
   # ISO 11270
   # Lateral jerk
   ts_elapsed = steer_step * DT_CTRL
