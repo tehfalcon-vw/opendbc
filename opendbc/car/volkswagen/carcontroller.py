@@ -208,13 +208,14 @@ class CarController(CarControllerBase):
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
-    # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle (VW MEB full cycle: 0.8 seconds)
-    # user input has hgher prio than EA indicating, post cycle handover is done via actual indicator signal
+    # "Wechselblinken" means switching between hazards and one sided indicators for every indicator cycle (VW MEB full cycle: 0.8 seconds, 1st normal, 2nd hazards)
+    # user input has hgher prio than EA indicating, post cycle handover is done via actual indicator signal if EA would already request
     # signaling indicators for 1 frame to trigger the first non hazard cycle, retrigger after the car signals a fully ended cycle
     if self.CP.flags & VolkswagenFlags.MEB:
       if self.frame % 2 == 0:
-        left_blinker = CC.leftBlinker if not CS.left_blinker_active else False
-        right_blinker = CC.rightBlinker if not CS.right_blinker_active else False
+        blinker_active = CS.left_blinker_active or CS.right_blinker_active
+        left_blinker = CC.leftBlinker if not blinker_active else False
+        right_blinker = CC.rightBlinker if not blinker_active else False
         can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker, right_blinker))
 
     # **** Cruise Controls ************************************************** #
