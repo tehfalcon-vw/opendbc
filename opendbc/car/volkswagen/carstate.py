@@ -21,7 +21,7 @@ class CarState(CarStateBase):
     self.upscale_lead_car_signal = False
     self.eps_stock_values = False
     self.curvature = 0.
-    self.speed_limit_mgr = SpeedLimitManager(CP, speed_limit_max_kph=120, predicative=False)
+    self.speed_limit_mgr = SpeedLimitManager(CP, speed_limit_max_kph=120, predicative=True)
 
   def update_button_enable(self, buttonEvents: list[structs.CarState.ButtonEvent]):
     if not self.CP.pcmCruise:
@@ -353,6 +353,7 @@ class CarState(CarStateBase):
     
     self.speed_limit_mgr.update(ret.vEgo, psd_04_values, psd_05_values, psd_06_values, vze_01_values)
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
+    ret.cruiseState.speedLimitPredicative = self.speed_limit_mgr.get_speed_limit_predicative()
 
     # Update button states for turn signals and ACC controls, capture all ACC button state/config for passthrough
     # turn signal effect
@@ -393,7 +394,6 @@ class CarState(CarStateBase):
     elif v_ego > (self.CP.minSteerSpeed + 2.):
       self.low_speed_alert = False
     return self.low_speed_alert
-
 
   def update_hca_state(self, hca_status, drive_mode=True):
     # Treat FAULT as temporary for worst likely EPS recovery time, for cars without factory Lane Assist
