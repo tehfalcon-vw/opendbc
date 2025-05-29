@@ -55,7 +55,7 @@ def get_long_control_limits(speed: float, set_speed: float, distance: float):
   
   set_speed_diff_up = max(0, abs(speed) - abs(set_speed)) # set speed difference down requested by user or speed overshoot (includes hud - real speed difference!)
   set_speed_diff_up_factor = np.interp(set_speed_diff_up, [1, 1.75], [1., 0.]) # faster requested speed decrease and less speed overshoot downhill 
-  lower_limit = np.interp(distance, [0, 6, 100], [lower_limit_min, lower_limit_factor, lower_limit_max]) # base line based on distance
+  lower_limit = np.interp(distance, [0, 100], [lower_limit_min, lower_limit_max]) # base line based on distance
   lower_limit = lower_limit * set_speed_diff_up_factor
   
   return upper_limit, lower_limit
