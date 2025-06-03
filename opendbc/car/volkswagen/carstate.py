@@ -45,7 +45,7 @@ class CarState(CarStateBase):
 
     return button_events
 
-  def update(self, can_parsers) -> structs.CarState:
+  def update(self, can_parsers) -> tuple[structs.CarState, structs.CarStateSP]:
     pt_cp = can_parsers[Bus.pt]
     main_cp = can_parsers[Bus.main]
     cam_cp = can_parsers[Bus.cam]
@@ -57,6 +57,7 @@ class CarState(CarStateBase):
       return self.update_meb(pt_cp, main_cp, cam_cp, ext_cp)
 
     ret = structs.CarState()
+    ret_sp = structs.CarStateSP()
 
     if self.CP.transmissionType == TransmissionType.direct:
       ret.gearShifter = self.parse_gear_shifter(self.CCP.shifter_values.get(pt_cp.vl["Motor_EV_01"]["MO_Waehlpos"], None))
@@ -151,10 +152,11 @@ class CarState(CarStateBase):
     ret.lowSpeedAlert = self.update_low_speed_alert(ret.vEgo)
 
     self.frame += 1
-    return ret
+    return ret, ret_sp
 
-  def update_pq(self, pt_cp, cam_cp, main_cp, ext_cp) -> structs.CarState:
+  def update_pq(self, pt_cp, cam_cp, main_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]:
     ret = structs.CarState()
+    ret_sp = structs.CarStateSP()
     # Update vehicle speed and acceleration from ABS wheel speeds.
     ret.wheelSpeeds = self.get_wheel_speeds(
       pt_cp.vl["Bremse_3"]["Radgeschw__VL_4_1"],
@@ -252,10 +254,11 @@ class CarState(CarStateBase):
     ret.lowSpeedAlert = self.update_low_speed_alert(ret.vEgo)
 
     self.frame += 1
-    return ret
+    return ret, ret_sp
 
-  def update_meb(self, pt_cp, main_cp, cam_cp, ext_cp) -> structs.CarState:
+  def update_meb(self, pt_cp, main_cp, cam_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]
     ret = structs.CarState()
+    ret_sp = structs.CarStateSP()
     # Update vehicle speed and acceleration from ABS wheel speeds.
     ret.wheelSpeeds = self.get_wheel_speeds(
       pt_cp.vl["ESC_51"]["VL_Radgeschw"],
@@ -385,7 +388,7 @@ class CarState(CarStateBase):
       ret.batteryDetails.temperature  = main_cp.vl["DCDC_03"]["DC_Temperatur"] # dcdc converter temperature
 
     self.frame += 1
-    return ret
+    return ret, ret_sp
 
   def update_low_speed_alert(self, v_ego: float) -> bool:
     # Low speed steer alert hysteresis logic
