@@ -842,10 +842,6 @@ bool steer_angle_cmd_checks(int desired_angle, bool steer_control_enabled, const
 
 // Safety checks for curvature-based steering commands
 bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, bool steer_control_enabled, const CurvatureSteeringLimits limits) {
-  static const float ISO_LATERAL_ACCEL = 3.0;  // m/s^2, Maximum lateral acceleration as per ISO 11270
-  static const float MAX_LATERAL_JERK  = 5.0;  // m/s^3, Maximum jerk as per ISO 11270
-  static const float EARTH_G           = 9.81;
-  
   bool violation = false;
 
   if (is_lat_active() && steer_control_enabled) {
@@ -854,7 +850,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     // ISO jerk limit
     float ts_elapsed           = limits.send_rate;
     float speed                = MAX((vehicle_speed.min / VEHICLE_SPEED_FACTOR) - 1., 1.0);
-    float curvature_rate_limit = MAX_LATERAL_JERK / (speed * speed);  // rad/m/s
+    float curvature_rate_limit = ISO_LATERAL_JERK / (speed * speed);  // rad/m/s
 
     float curvature_last  = desired_curvature_last / limits.curvature_to_can;
     float curvature_up    = curvature_last + curvature_rate_limit * ts_elapsed;
