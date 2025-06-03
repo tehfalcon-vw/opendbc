@@ -256,7 +256,7 @@ class CarState(CarStateBase):
     self.frame += 1
     return ret, ret_sp
 
-  def update_meb(self, pt_cp, main_cp, cam_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]
+  def update_meb(self, pt_cp, main_cp, cam_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]:
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
     # Update vehicle speed and acceleration from ABS wheel speeds.
