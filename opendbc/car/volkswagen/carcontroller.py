@@ -61,12 +61,7 @@ def get_long_control_limits(speed: float, set_speed: float, distance: float):
   return upper_limit, lower_limit
 
 
-def sigmoid_curvature_boost_meb(kappa: float, v_ego: float, kappa_thresh: float = 0.00025, steepness: float = 2500.0) -> float:
-  #v_points = np.array([0.0, 20.0, 40.0])
-  #boost_points = np.array([1.0, 1.1, 1.2])
-  #max_boost = float(np.interp(v_ego, v_points, boost_points))
-  max_boost = 1.4
-
+def sigmoid_curvature_boost_meb(kappa: float, v_ego: float, kappa_thresh: float = 0.00025, steepness: float = 2500.0, max_boost: float = 1.4) -> float:
   abs_kappa = abs(kappa)
   boost_factor = 1.0 + (max_boost - 1.0) * (1 / (1 + np.exp(steepness * (abs_kappa - kappa_thresh))))
 
