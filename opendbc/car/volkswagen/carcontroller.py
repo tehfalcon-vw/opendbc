@@ -61,9 +61,15 @@ def get_long_control_limits(speed: float, set_speed: float, distance: float):
   return upper_limit, lower_limit
 
 
-def fix_curvature_model_error_meb(curvature: float, v_ego: float, alpha: float = 0.03, v_ref: float = 25.0) -> float:
-    scale = 1.0 + alpha * (v_ego / v_ref) ** 2
-    return curvature * scale
+def sigmoid_curvature_boost_meb(kappa: float, v_ego: float, kappa_thresh: float = 0.0015, steepness: float = 5000.0) -> float:
+  v_points = np.array([0.0, 20.0, 40.0])
+  boost_points = np.array([1.0, 1.2, 1.25])
+  max_boost = float(np.interp(v_ego, v_points, boost_points))
+
+  abs_kappa = abs(kappa)
+  boost_factor = 1.0 + (max_boost - 1.0) * (1 / (1 + np.exp(steepness * (abs_kappa - kappa_thresh))))
+
+  return np.sign(kappa) * abs_kappa * boost_factor
 
 
 class CarController(CarControllerBase):
@@ -116,8 +122,8 @@ class CarController(CarControllerBase):
         if CC.latActive:
           hca_enabled = True
           current_curvature = CS.curvature
-          actuator_curvature_with_offset = actuators.curvature + (CS.curvature - CC.currentCurvature)
-          #actuator_curvature_with_offset = fix_curvature_model_error_meb(actuator_curvature_with_offset, CS.out.vEgo) # compensate OP model curvature nerfing caused by non curvature actuator post processing
+          actuator_curvature = sigmoid_curvature_boost_meb(actuators.curvature, CS.out.vEgo)
+          actuator_curvature_with_offset = actuator_curvature + (CS.curvature - CC.currentCurvature)
           apply_curvature, iso_limit_active = apply_std_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, CC.rollDEPRECATED, CS.curvature,
                                                                          self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
 
