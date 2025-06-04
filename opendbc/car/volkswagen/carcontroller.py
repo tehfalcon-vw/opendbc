@@ -65,7 +65,7 @@ def sigmoid_curvature_boost_meb(kappa: float, v_ego: float, kappa_thresh: float 
   #v_points = np.array([0.0, 20.0, 40.0])
   #boost_points = np.array([1.0, 1.1, 1.2])
   #max_boost = float(np.interp(v_ego, v_points, boost_points))
-  max_boost = 1.25
+  max_boost = 1.4
 
   abs_kappa = abs(kappa)
   boost_factor = 1.0 + (max_boost - 1.0) * (1 / (1 + np.exp(steepness * (abs_kappa - kappa_thresh))))
