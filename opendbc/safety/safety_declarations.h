@@ -323,6 +323,9 @@ extern int desired_steer_power_last;
 // This flag allows AEB to be commanded from openpilot.
 #define ALT_EXP_ALLOW_AEB 16
 
+// This flag allows the use of OP sensor data for curvature safety
+#define ALT_EXP_ALLOW_OP_SENSOR_DATA 32
+
 extern int alternative_experience;
 
 // time since safety mode has been changed
