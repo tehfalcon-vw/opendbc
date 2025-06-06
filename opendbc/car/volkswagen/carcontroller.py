@@ -66,7 +66,7 @@ def sigmoid_curvature_boost_meb(kappa: float, v_ego: float, kappa_thresh: float 
   v_points = np.array([20.0, 40.0])
   boost_values = np.array([1.5, 2.1]) # increase boost amplitude with speed
   boost = float(np.interp(v_ego, v_points, boost_values))
-  steepness_values = np.array([5000.0, 3000.0]) # increase boost area with speed
+  steepness_values = np.array([5000.0, 3200.0]) # increase boost area with speed
   steepness = float(np.interp(v_ego, v_points, steepness_values))
 
   abs_kappa = abs(kappa)
@@ -125,7 +125,7 @@ class CarController(CarControllerBase):
         if CC.latActive:
           hca_enabled = True
           current_curvature = CS.curvature
-          actuator_curvature = sigmoid_curvature_boost_meb(actuators.curvature, CS.out.vEgo)
+          #actuator_curvature = sigmoid_curvature_boost_meb(actuators.curvature, CS.out.vEgo)
           actuator_curvature_with_offset = actuator_curvature + (CS.curvature - CC.currentCurvature)
           apply_curvature, iso_limit_active = apply_std_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, CC.rollDEPRECATED, CS.curvature,
                                                                          self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
