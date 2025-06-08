@@ -251,9 +251,6 @@ class CarController(CarControllerBase):
     
     # **** Acceleration Controls ******************************************** #
 
-    if self.frame % 100: # for testing
-      can_sends.append(make_tester_present_msg(0x7D0, self.ext_bus, suppress_response=True))
-
     if self.frame % self.CCP.ACC_CONTROL_STEP == 0 and self.CP.openpilotLongitudinalControl:
       if not self.long_cruise_control:
         starting = actuators.longControlState == LongCtrlState.pid and (CS.esp_hold_confirmation or CS.out.vEgo < self.CP.vEgoStopping)
