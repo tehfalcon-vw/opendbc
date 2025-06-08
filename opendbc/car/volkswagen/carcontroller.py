@@ -256,17 +256,20 @@ class CarController(CarControllerBase):
         stopping = actuators.longControlState == LongCtrlState.stopping
         
         if self.CP.flags & VolkswagenFlags.MEB:
-          starting = actuators.longControlState == LongCtrlState.starting or actuators.longControlState == LongCtrlState.pid and CS.esp_hold_confirmation
           # Logic to prevent car error with EPB:
-          #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control
+          #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control -> clean exit of ACC car controls
+          #   * (1 frame of HMS RAMP RELEASE is enough, but lower the possibility of panda safety blocking it)
+          
+          # usage of OP starting state for appropriate starting accel
+          # esp hold confirmation is a safety measure to ensure a full start and is also used for HMS to keep the car fully stopped
+          starting = actuators.longControlState == LongCtrlState.starting or actuators.longControlState == LongCtrlState.pid and CS.esp_hold_confirmation
+          
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
 
-          # 1 frame of long_override_begin is enough, but lower the possibility of panda safety blocking it
           long_override = CC.cruiseControl.override or CS.out.gasPressed
           self.long_override_counter = min(self.long_override_counter + 1, 5) if long_override else 0
           long_override_begin = long_override and self.long_override_counter < 5
 
-          # 1 frame of long_disabling is enough, but lower the possibility of panda safety blocking it
           self.long_disabled_counter = min(self.long_disabled_counter + 1, 5) if not CC.enabled else 0
           long_disabling = not CC.enabled and self.long_disabled_counter < 5
 
