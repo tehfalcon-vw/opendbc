@@ -12,7 +12,7 @@ SANITY_CHECK_DIFF_PERCENT_LOWER = 30
 SPEED_LIMIT_UNLIMITED_VZE_KPH = int(round(144 * CV.MS_TO_KPH))
 DECELERATION_PREDICATIVE = 0.18
 SEGMENT_DECAY = 10
-PSD_NEXT_DECAY_TIME = 2
+PSD_NEXT_DECAY_TIME = 5
 
 # this so invalidation mechanism found -> use decay, quality flag is worthless at the moment
 class SpeedLimitManager:
