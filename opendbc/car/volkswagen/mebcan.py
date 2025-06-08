@@ -145,7 +145,7 @@ def acc_control_value(main_switch_on, acc_faulted, long_active, override):
   return acc_control
 
 
-def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, override, override_begin, long_disabling):
+def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, esp_hold, override, override_begin, long_disabling):
   # warning: car is reacting to hold mechanic even with long control off
 
   if acc_faulted:
@@ -162,7 +162,7 @@ def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, 
       acc_hold_type = ACC_HMS_NO_REQUEST # overriding / no request
   elif starting:
     acc_hold_type = ACC_HMS_RELEASE # release request and startup
-  elif stopping:
+  elif stopping or esp_hold:
     acc_hold_type = ACC_HMS_HOLD # hold or hold request
   else:
     acc_hold_type = ACC_HMS_NO_REQUEST # no hold request
