@@ -18,7 +18,6 @@
 #define MSG_EA_02            0x1F0   // TX, for EA mitigation
 #define MSG_KLR_01           0x25D   // TX, for capacitive steering wheel
 #define MSG_Panda_Data_01    0x50A6EDA   // internal use, data for panda from OP sensors
-#define MSG_Diag_Radar       0x7D0   // TX, Tester present for radar deactivation
 
 static uint8_t volkswagen_crc8_lut_8h2f[256]; // Static lookup table for CRC8 poly 0x2F, aka 8H2F/AUTOSAR
 
@@ -98,8 +97,7 @@ static safety_config volkswagen_meb_init(uint16_t param) {
   static const CanMsg VOLKSWAGEN_MEB_LONG_TX_MSGS[] = {{MSG_MEB_ACC_01, 0, 48, .check_relay = true}, {MSG_ACC_18, 0, 32, .check_relay = true}, {MSG_HCA_03, 0, 24, .check_relay = true},
                                                        {MSG_EA_01, 0, 8, .check_relay = false}, {MSG_EA_02, 0, 8, .check_relay = true},
                                                        {MSG_KLR_01, 0, 8, .check_relay = false}, {MSG_KLR_01, 2, 8, .check_relay = false},
-                                                       {MSG_LDW_02, 0, 8, .check_relay = true}, {MSG_TA_01, 0, 8, .check_relay = true},
-                                                       {MSG_Diag_Radar, 0, 8, .check_relay = false}, {MSG_Diag_Radar, 2, 8, .check_relay = false}};
+                                                       {MSG_LDW_02, 0, 8, .check_relay = true}, {MSG_TA_01, 0, 8, .check_relay = true}};
 
   static RxCheck volkswagen_meb_rx_checks[] = {
     {.msg = {{MSG_LH_EPS_03, 0, 8, .max_counter = 15U, .ignore_quality_flag = true, .frequency = 100U}, { 0 }, { 0 }}},
