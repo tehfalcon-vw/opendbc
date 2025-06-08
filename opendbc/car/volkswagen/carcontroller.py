@@ -1,6 +1,6 @@
 import numpy as np
 from opendbc.can.packer import CANPacker
-from opendbc.car import Bus, apply_driver_steer_torque_limits, apply_std_curvature_limits, structs, DT_CTRL
+from opendbc.car import Bus, apply_driver_steer_torque_limits, apply_std_curvature_limits, structs, DT_CTRL, make_tester_present_msg
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.volkswagen import mqbcan, pqcan, mebcan, pandacan
@@ -250,6 +250,9 @@ class CarController(CarControllerBase):
       self.gra_down = True if set_speed > actuator_speed and self.gra_enabled else False
     
     # **** Acceleration Controls ******************************************** #
+
+    if self.frame % 100: # for testing
+      can_sends.append(make_tester_present_msg(0x7D0, self.ext_bus, suppress_response=True))
 
     if self.frame % self.CCP.ACC_CONTROL_STEP == 0 and self.CP.openpilotLongitudinalControl:
       if not self.long_cruise_control:
