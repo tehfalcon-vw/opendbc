@@ -278,7 +278,7 @@ class CarController(CarControllerBase):
                                                  CS.esp_hold_confirmation, long_override, long_override_begin, long_disabling)
           can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, CANBUS.pt, CS.acc_type, CC.enabled,
                                                              upper_jerk, lower_jerk, upper_control_limit, lower_control_limit,
-                                                             accel, acc_control, acc_hold_type, stopping, starting, CS.esp_hold_confirmation,
+                                                             accel, acc_control, acc_hold_type, stopping, starting,
                                                              long_override, CS.travel_assist_available))
           self.accel_last = accel
 
@@ -323,7 +323,7 @@ class CarController(CarControllerBase):
           gap = max(8, CS.out.vEgo * hud_control.leadFollowTime)
           distance = max(8, hud_control.leadDistance) if hud_control.leadDistance != 0 else 0
           acc_hud_status = self.CCS.acc_hud_status_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled,
-                                                         CS.esp_hold_confirmation, CC.cruiseControl.override or CS.out.gasPressed)
+                                                         CC.cruiseControl.override or CS.out.gasPressed)
           can_sends.append(self.CCS.create_acc_hud_control(self.packer_pt, CANBUS.pt, acc_hud_status, hud_control.setSpeed * CV.MS_TO_KPH,
                                                            hud_control.leadVisible, hud_control.leadDistanceBars + 1, show_distance_bars,
                                                            CS.esp_hold_confirmation, distance, gap, fcw_alert))
