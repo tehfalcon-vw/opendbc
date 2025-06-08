@@ -124,8 +124,6 @@ class CarInterface(CarInterfaceBase):
     ret.autoResumeSng = ret.minEnableSpeed == -1
 
     if ret.flags & VolkswagenFlags.MEB:
-      ret.startingState = True
-      ret.startAccel = 2.0
       ret.stopAccel = -1.1
       ret.stoppingDecelRate = 0.01
 
