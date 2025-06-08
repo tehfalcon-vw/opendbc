@@ -256,7 +256,7 @@ class CarController(CarControllerBase):
         stopping = actuators.longControlState == LongCtrlState.stopping
         
         if self.CP.flags & VolkswagenFlags.MEB:
-          starting = actuators.longControlState == LongCtrlState.starting
+          starting = actuators.longControlState == LongCtrlState.starting or actuators.longControlState == LongCtrlState.pid and CS.esp_hold_confirmation
           # Logic to prevent car error with EPB:
           #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
