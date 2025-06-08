@@ -128,7 +128,7 @@ def create_capacitive_wheel_touch(packer, bus, lat_active, klr_stock_values): # 
   return packer.make_can_msg("KLR_01", bus, values)
   
 
-def acc_control_value(main_switch_on, acc_faulted, long_active, esp_hold, override):
+def acc_control_value(main_switch_on, acc_faulted, long_active, override):
 
   if acc_faulted:
     acc_control = ACC_CTRL_ERROR # error state
@@ -145,7 +145,7 @@ def acc_control_value(main_switch_on, acc_faulted, long_active, esp_hold, overri
   return acc_control
 
 
-def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, esp_hold, override, override_begin, long_disabling):
+def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, override, override_begin, long_disabling):
   # warning: car is reacting to hold mechanic even with long control off
 
   if acc_faulted:
@@ -162,7 +162,7 @@ def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, 
       acc_hold_type = ACC_HMS_NO_REQUEST # overriding / no request
   elif starting:
     acc_hold_type = ACC_HMS_RELEASE # release request and startup
-  elif stopping or esp_hold:
+  elif stopping:
     acc_hold_type = ACC_HMS_HOLD # hold or hold request
   else:
     acc_hold_type = ACC_HMS_NO_REQUEST # no hold request
@@ -171,7 +171,7 @@ def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, 
 
 
 def create_acc_accel_control(packer, bus, acc_type, acc_enabled, upper_jerk, lower_jerk, upper_control_limit, lower_control_limit,
-                             accel, acc_control, acc_hold_type, stopping, starting, esp_hold, override, travel_assist_available):
+                             accel, acc_control, acc_hold_type, stopping, starting, override, travel_assist_available):
   # active longitudinal control disables one pedal driving (regen mode) while using overriding mechnism
   commands = []
 
@@ -217,7 +217,7 @@ def create_acc_accel_control(packer, bus, acc_type, acc_enabled, upper_jerk, low
   return commands
 
 
-def acc_hud_status_value(main_switch_on, acc_faulted, long_active, esp_hold, override):
+def acc_hud_status_value(main_switch_on, acc_faulted, long_active, override):
 
   if acc_faulted:
     acc_hud_control = ACC_HUD_ERROR # error state
