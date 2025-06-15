@@ -12,7 +12,6 @@ SANITY_CHECK_DIFF_PERCENT_LOWER = 30
 SPEED_LIMIT_UNLIMITED_VZE_KPH = int(round(144 * CV.MS_TO_KPH))
 DECELERATION_PREDICATIVE = 0.18
 SEGMENT_DECAY = 10
-PSD_NEXT_DECAY_TIME = 5
 
 # this so invalidation mechanism found -> use decay, quality flag is worthless at the moment
 class SpeedLimitManager:
@@ -31,6 +30,7 @@ class SpeedLimitManager:
     self.current_predicative_segment = {"ID": NOT_SET, "Length": NOT_SET, "Speed": NOT_SET, "StreetType": NOT_SET}
     self.v_limit_psd_next_last_timestamp = 0
     self.v_limit_psd_next_last = NOT_SET
+    self.v_limit_psd_next_decay_time = NOT_SET
 
   def update(self, current_speed_ms, psd_04, psd_05, psd_06, vze):
     # try reading speed form traffic sign recognition
@@ -222,11 +222,13 @@ class SpeedLimitManager:
       self.v_limit_psd_next = best_result["limit"]
       self.v_limit_psd_next_last = best_result["limit"]
       self.v_limit_psd_next_last_timestamp = now
+      self.v_limit_psd_next_decay_time = best_result["dist"] / max(current_speed_ms, 1)
     else:
-      if now - self.v_limit_psd_next_last_timestamp <= PSD_NEXT_DECAY_TIME and self.v_limit_output_last != self.v_limit_psd_next_last:
+      if now - self.v_limit_psd_next_last_timestamp <= self.v_limit_psd_next_decay_time and self.v_limit_output_last != self.v_limit_psd_next_last:
         self.v_limit_psd_next = self.v_limit_psd_next_last
       else:
         self.v_limit_psd_next_last = NOT_SET
+        self.v_limit_psd_next_decay_time = NOT_SET
 
   def _get_speed_limit_psd(self):
     seg_id = self.current_predicative_segment.get("ID")
