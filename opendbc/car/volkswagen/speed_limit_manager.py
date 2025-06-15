@@ -1,4 +1,5 @@
 import time
+import math
 
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.volkswagen.values import VolkswagenFlags
@@ -222,7 +223,7 @@ class SpeedLimitManager:
       self.v_limit_psd_next = best_result["limit"]
       self.v_limit_psd_next_last = best_result["limit"]
       self.v_limit_psd_next_last_timestamp = now
-      self.v_limit_psd_next_decay_time = best_result["dist"] / max(current_speed_ms, 1)
+      self.v_limit_psd_next_decay_time = math.sqrt(2 * best_result["dist"] / DECELERATION_PREDICATIVE)
     else:
       if now - self.v_limit_psd_next_last_timestamp <= self.v_limit_psd_next_decay_time and self.v_limit_output_last != self.v_limit_psd_next_last:
         self.v_limit_psd_next = self.v_limit_psd_next_last
