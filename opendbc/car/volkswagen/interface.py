@@ -89,12 +89,12 @@ class CarInterface(CarInterfaceBase):
       ret.steerActuatorDelay = 0.3855 # live delay estimate
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
     elif ret.flags & VolkswagenFlags.MEB:
-      ret.steerActuatorDelay = 0.3
-      ret.lateralTuning.pid.kpBP = [10., 25., 35.]
-      ret.lateralTuning.pid.kiBP = [10., 25., 35.]
+      ret.steerActuatorDelay = 0.4
+      ret.lateralTuning.pid.kpBP = [10., 40.]
+      ret.lateralTuning.pid.kiBP = [10., 40.]
       ret.lateralTuning.pid.kf = 1.
-      ret.lateralTuning.pid.kpV = [0., 0.6, 1.1]
-      ret.lateralTuning.pid.kiV = [0., 0.02, 0.07]
+      ret.lateralTuning.pid.kpV = [0., 1.2]
+      ret.lateralTuning.pid.kiV = [0., 0.14]
     else:
       ret.steerActuatorDelay = 0.1
       ret.lateralTuning.pid.kpBP = [0.]
@@ -106,10 +106,10 @@ class CarInterface(CarInterfaceBase):
     # Global longitudinal tuning defaults, can be overridden per-vehicle
 
     if ret.flags & VolkswagenFlags.MEB:
-      ret.longitudinalActuatorDelay = 0.3
+      ret.longitudinalActuatorDelay = 0.4
       ret.radarDelay = 0.3
-      ret.longitudinalTuning.kiBP = [0., 10.]
-      ret.longitudinalTuning.kiV = [0.5, 0.]
+      #ret.longitudinalTuning.kiBP = [0., 10., 15.]
+      #ret.longitudinalTuning.kiV = [0.4, 0.1, 0.]
 
     ret.alphaLongitudinalAvailable = ret.networkLocation == NetworkLocation.gateway or docs
     if alpha_long:
@@ -120,13 +120,13 @@ class CarInterface(CarInterfaceBase):
         ret.minEnableSpeed = 4.5
 
     ret.pcmCruise = not ret.openpilotLongitudinalControl
-    ret.stopAccel = -0.55
     ret.vEgoStarting = 0.1
     ret.vEgoStopping = 0.5
     ret.autoResumeSng = ret.minEnableSpeed == -1
 
     if ret.flags & VolkswagenFlags.MEB:
-      ret.stopAccel = -1.1
-      ret.stoppingDecelRate = 0.01
+      ret.stopAccel = -1.1 # stock stopped accel
+    else:
+      ret.stopAccel = -0.55
 
     return ret
