@@ -258,11 +258,11 @@ def get_desired_gap(distance_bars, desired_gap, current_gap_signal):
   return gap
 
 
-def create_acc_hud_control(packer, bus, acc_control, set_speed, lead_visible, distance_bars, show_distance_bars, esp_hold, distance, desired_gap, fcw_alert, acc_event, speed_limit):
+def create_acc_hud_control(packer, bus, acc_control, set_speed, lead_visible, distance_bars, show_distance_bars, esp_hold, distance, desired_gap, fcw_alert, acc_event, speed_limit, acc_speed_limit:
 
   values = {
     "ACC_Status_ACC":                acc_control,
-    "ACC_Tempolimit":                speed_limit if acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # display speed limits (message type defined by ACC_Events)
+    "ACC_Tempolimit":                acc_speed_limit if acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # display speed limits (message type defined by ACC_Events)
     "ACC_Wunschgeschw_02":           set_speed if set_speed < 250 else 327.36,
     "ACC_Gesetzte_Zeitluecke":       distance_bars, # 5 distance bars available (3 are used by OP)
     "ACC_Display_Prio":              0 if fcw_alert and acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 1, # probably keeping warning in front
@@ -279,6 +279,7 @@ def create_acc_hud_control(packer, bus, acc_control, set_speed, lead_visible, di
     "Street_Color":                  1 if acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # light grey (1) or dark (0) street
     "Lead_Brightness":               3 if acc_control == ACC_HUD_ACTIVE else 0, # object shows in colour
     "ACC_Events":                    acc_event, # e.g. pACC Events
+    "ACC_Event_Wunschgeschw":        speed_limit if acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0x3FF,
     "Zeitluecke_1":                  get_desired_gap(distance_bars, desired_gap, 1), # desired distance to lead object for distance bar 1
     "Zeitluecke_2":                  get_desired_gap(distance_bars, desired_gap, 2), # desired distance to lead object for distance bar 2
     "Zeitluecke_3":                  get_desired_gap(distance_bars, desired_gap, 3), # desired distance to lead object for distance bar 3
@@ -288,7 +289,6 @@ def create_acc_hud_control(packer, bus, acc_control, set_speed, lead_visible, di
     "ACC_Anzeige_Zeitluecke":        show_distance_bars if acc_control != ACC_HUD_DISABLED else 0, # show distance bar selection
     "SET_ME_0X1":                    0x1,    # unknown
     "SET_ME_0X6A":                   0x6A,   # unknown
-    "SET_ME_0X3FF":                  0x3FF,  # unknown
     "SET_ME_0XFFFF":                 0xFFFF, # unknown
     "SET_ME_0X7FFF":                 0x7FFF, # unknown
   }
