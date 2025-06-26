@@ -268,13 +268,12 @@ class CarController(CarControllerBase):
           self.speed_limit_last = CS.out.cruiseState.speedLimit
           sl_active = self.frame - self.speed_limit_changed_timer < 400
           speed_limit = CS.out.cruiseState.speedLimitPredicative if sl_predicative_active else (CS.out.cruiseState.speedLimit if sl_active else 0)
-          speed_limit_mapped = map_speed_to_acc_tempolimit(speed_limit)
           
           acc_hud_event = self.CCS.acc_hud_event(acc_hud_status, CS.esp_hold_confirmation, sl_predicative_active, sl_active)
           
           can_sends.append(self.CCS.create_acc_hud_control(self.packer_pt, CANBUS.pt, acc_hud_status, hud_control.setSpeed * CV.MS_TO_KPH,
                                                            hud_control.leadVisible, hud_control.leadDistanceBars + 1, show_distance_bars,
-                                                           CS.esp_hold_confirmation, distance, gap, fcw_alert, acc_hud_event, speed_limit_mapped))
+                                                           CS.esp_hold_confirmation, distance, gap, fcw_alert, acc_hud_event, speed_limit))
 
         else:
           lead_distance = 0
