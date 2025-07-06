@@ -377,6 +377,7 @@ struct CarControl {
   angularVelocity @14 :List(Float32);
   currentCurvature @17 :Float32;  # From vehicle model
   curvatureControllerActive @18: Bool;
+  currentCurvatureNoRoll @19 :Float32;  # From vehicle model without roll
 
   cruiseControl @4 :CruiseControl;
   hudControl @5 :HUDControl;
