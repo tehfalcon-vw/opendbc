@@ -67,7 +67,8 @@ class CarController(CarControllerBase):
           hca_enabled = True
           current_curvature = CS.curvature
           #actuator_curvature = sigmoid_curvature_boost_meb(actuators.curvature, CS.out.vEgo)
-          actuator_curvature_with_offset = actuators.curvature + (CS.curvature - CC.currentCurvature) if not CC.curvatureControllerActive else actuators.curvature
+          #actuator_curvature_with_offset = actuators.curvature + (CS.curvature - CC.currentCurvature) if not CC.curvatureControllerActive else actuators.curvature
+          actuator_curvature_with_offset = actuators.curvature + (CS.curvature - CC.currentCurvatureNoRoll)
           apply_curvature, iso_limit_active = apply_std_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, CC.rollDEPRECATED, CS.curvature,
                                                                          self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
 
