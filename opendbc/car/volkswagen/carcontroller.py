@@ -44,8 +44,6 @@ class CarController(CarControllerBase):
     self.speed_limit_last = 0
     self.speed_limit_changed_timer = 0
 
-    self.req_state = 4
-
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -57,9 +55,6 @@ class CarController(CarControllerBase):
         can_sends.append(self.PC.create_panda_data(self.packer_pt, CANBUS.pt, CC.rollDEPRECATED))
 
     # **** Steering Controls ************************************************ #
-
-    if self.frame % 500 == 0 and CC.latActive:
-      self.req_state = self.req_state + 1 if self.req_state < 15 else 4
 
     if self.frame % self.CCP.STEER_STEP == 0:
       if self.CP.flags & VolkswagenFlags.MEB:
@@ -112,7 +107,7 @@ class CarController(CarControllerBase):
             apply_curvature = 0. # inactive curvature
             steering_power = 0
 
-        can_sends.append(self.CCS.create_steering_control(self.packer_pt, CANBUS.pt, apply_curvature, hca_enabled, steering_power, steering_power_boost, self.req_state))
+        can_sends.append(self.CCS.create_steering_control(self.packer_pt, CANBUS.pt, apply_curvature, hca_enabled, steering_power, steering_power_boost))
         self.apply_curvature_last = apply_curvature
         self.steering_power_last = steering_power
         
