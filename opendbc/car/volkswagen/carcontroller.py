@@ -62,52 +62,32 @@ class CarController(CarControllerBase):
         #   * steering power as counter and near zero before OP lane assist deactivation
         # MEB rack can be used continously without time limits
         # maximum real steering angle change ~ 120-130 deg/s
-
+        
         if CC.latActive:
           hca_enabled = True
-          current_curvature = CS.curvature
           #actuator_curvature = sigmoid_curvature_boost_meb(actuators.curvature, CS.out.vEgo)
           current_curvature_vm = CC.currentCurvatureNoRoll if CC.curvatureControllerActive else CC.currentCurvature
           actuator_curvature_with_offset = actuators.curvature + (CS.curvature - current_curvature_vm)
           apply_curvature, iso_limit_active = apply_std_curvature_limits(actuator_curvature_with_offset, self.apply_curvature_last, CS.out.vEgoRaw, CC.rollDEPRECATED, CS.curvature,
                                                                          self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
 
-          steering_power_min_by_speed = np.interp(CS.out.vEgo, [0, self.CCP.STEERING_POWER_MAX_BY_SPEED], [self.CCP.STEERING_POWER_MIN, self.CCP.STEERING_POWER_MAX]) # base level
-          steering_curvature_diff = abs(apply_curvature - current_curvature) # keep power high at very low speed for both directions
-          steering_curvature_increase = max(0, abs(apply_curvature) - abs(current_curvature)) # increase power for increasing steering at normal driving speeds
-          steering_curvature_change = np.interp(CS.out.vEgo, [0., 3.], [steering_curvature_diff, steering_curvature_increase]) # maximum power seems to inhibit steering movement, decreasing does not increase power
-          steering_power_target_curvature = steering_power_min_by_speed + self.CCP.CURVATURE_POWER_FACTOR * (steering_curvature_change + abs(apply_curvature)) # abs apply_curvature level keeps steering in place
-          steering_power_target = np.clip(steering_power_target_curvature, self.CCP.STEERING_POWER_MIN, self.CCP.STEERING_POWER_MAX)
-
-          if self.steering_power_last < self.CCP.STEERING_POWER_MIN:  # OP lane assist just activated
-            steering_power = min(self.steering_power_last + self.CCP.STEERING_POWER_STEPS, self.CCP.STEERING_POWER_MIN)
-          elif CS.out.steeringPressed:  # user action results in decreasing the steering power
-            # iso works strictly AGAINST user, reduce power further for this case
-            steering_power_user = self.CCP.STEERING_POWER_MIN if iso_limit_active else max(steering_power_target / 100 * (100 - self.CCP.STEERING_POWER_USER_REDUCTION), self.CCP.STEERING_POWER_MIN)
-            steering_power = max(self.steering_power_last - self.CCP.STEERING_POWER_STEPS, steering_power_user)
-          else: # following desired target
-            if self.steering_power_last < steering_power_target:
-              steering_power = min(self.steering_power_last + self.CCP.STEERING_POWER_STEPS, steering_power_target)
-            elif self.steering_power_last > steering_power_target:
-              steering_power = max(self.steering_power_last - self.CCP.STEERING_POWER_STEPS, steering_power_target)
-            else:
-              steering_power = self.steering_power_last
-
-          steering_power_boost = False #True if steering_power == self.CCP.STEERING_POWER_MAX else False
+          min_power = max(self.apply_steer_power_last - self.CCP.STEERING_POWER_STEP, self.CCP.STEERING_POWER_MIN)
+          max_power = max(self.apply_steer_power_last + self.CCP.STEERING_POWER_STEP, self.CCP.STEERING_POWER_MAX)
+          target_power = int(np.interp(CS.out.steeringTorque, [self.CCP.STEER_DRIVER_ALLOWANCE, self.CCP.STEER_DRIVER_MAX],
+                                                              [self.CCP.STEERING_POWER_MAX, self.CCP.STEERING_POWER_MIN]))
+          steering_power = min(max(target_power, min_power), max_power)
           
         else:
-          steering_power_boost = False
           if self.steering_power_last > 0: # keep HCA alive until steering power has reduced to zero
             hca_enabled = True
-            current_curvature = CS.curvature
-            apply_curvature = np.clip(current_curvature, -self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX) # synchronize with current curvature
-            steering_power = max(self.steering_power_last - self.CCP.STEERING_POWER_STEPS, 0)
+            apply_curvature = np.clip(CS.curvature, -self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX) # synchronize with current curvature
+            steering_power = max(self.apply_steer_power_last - self.CCP.STEERING_POWER_STEP, 0)
           else: 
             hca_enabled = False
             apply_curvature = 0. # inactive curvature
             steering_power = 0
 
-        can_sends.append(self.CCS.create_steering_control(self.packer_pt, CANBUS.pt, apply_curvature, hca_enabled, steering_power, steering_power_boost))
+        can_sends.append(self.CCS.create_steering_control(self.packer_pt, CANBUS.pt, apply_curvature, hca_enabled, steering_power, False))
         self.apply_curvature_last = apply_curvature
         self.steering_power_last = steering_power
         
