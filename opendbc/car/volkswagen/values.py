@@ -73,15 +73,13 @@ class CarControllerParams:
       }
 
     elif CP.flags & VolkswagenFlags.MEB:
-      self.LDW_STEP                          = 10    # LDW_02 message frequency 10Hz
-      self.ACC_HUD_STEP                      = 6     # MEB_ACC_01 message frequency 16Hz
-      self.STEER_DRIVER_ALLOWANCE            = 80    # Driver intervention threshold 0.6 Nm
-      self.STEERING_POWER_USER_REDUCTION     = 40    # HCA_03 driver intervention power reduction in percent
-      self.STEERING_POWER_MAX                = 125   # HCA_03 maximum steering power
-      self.STEERING_POWER_MIN                = 40    # HCA_03 minimum steering power
-      self.STEERING_POWER_STEPS              = 6     # HCA_03 steering power counter steps
-      self.STEERING_POWER_MAX_BY_SPEED       = 20    # HCA_03 speed in m/s^2 where maximum steering power is reached
-      self.CURVATURE_POWER_FACTOR            = 4000
+      self.LDW_STEP               = 10    # LDW_02 message frequency 10Hz
+      self.ACC_HUD_STEP           = 6     # MEB_ACC_01 message frequency 16Hz
+      self.STEER_DRIVER_ALLOWANCE = 60    # Driver torque 0.6 Nm, begin steering reduction from MAX
+      self.STEER_DRIVER_MAX       = 300   # Driver torque 3.0 Nm, stop steering reduction at MIN
+      self.STEERING_POWER_MAX     = 125   # HCA_03 maximum steering power
+      self.STEERING_POWER_MIN     = 40    # HCA_03 minimum steering power
+      self.STEERING_POWER_STEPS   = 2     # HCA_03 steering power counter steps
       
       self.CURVATURE_LIMITS: CurvatureSteeringLimits = CurvatureSteeringLimits(
         0.195,  # Max curvature for steering command, m^-1
