@@ -18,7 +18,7 @@ ACC_HUD_ENABLED  = 2
 ACC_HUD_DISABLED = 0
 
   
-def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power, power_boost):
+def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power):
   values = {
     "Curvature": abs(apply_curvature), # in rad/m
     "Curvature_VZ": 1 if apply_curvature > 0 and lkas_enabled else 0,
