@@ -676,7 +676,9 @@ BO_ 771 HCA_03: 24 XXX
  SG_ Curvature_VZ : 39|1@1+ (1,0) [0|1] "" XXX
  SG_ Unknown_01 : 53|1@0+ (1,0) [0|1] "" XXX
  SG_ Vibration : 56|1@0+ (1,0) [0|1] "" XXX
+ SG_ Unknown_02 : 64|2@1+ (1,0) [0|3] "" XXX
  SG_ HighSendRate : 66|1@1+ (1,0) [0|1] "" XXX
+ SG_ Unknown_03 : 71|5@0+ (1,0) [0|1] "" XXX
 
 BO_ 792 MEB_Camera_03: 8 XXX
 
