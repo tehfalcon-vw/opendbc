@@ -93,7 +93,7 @@ class CarController(CarControllerBase):
             else:
               steering_power = self.steering_power_last
 
-          steering_power_boost = True if steering_power == self.CCP.STEERING_POWER_MAX else False
+          steering_power_boost = False #True if steering_power == self.CCP.STEERING_POWER_MAX else False
           
         else:
           steering_power_boost = False
