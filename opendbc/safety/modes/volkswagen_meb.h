@@ -251,21 +251,21 @@ static bool volkswagen_meb_tx_hook(const CANPacket_t *to_send) {
   }
 
   // Safety check for HCA_03 Heading Control Assist curvature
-  if (addr == MSG_HCA_03) {
-    int desired_curvature_raw = GET_BYTES(to_send, 3, 2) & 0x7FFFU;
+  //if (addr == MSG_HCA_03) {
+  //  int desired_curvature_raw = GET_BYTES(to_send, 3, 2) & 0x7FFFU;
 
-    bool desired_curvature_sign = GET_BIT(to_send, 39U);
-    if (!desired_curvature_sign) {
-      desired_curvature_raw *= -1;
-    }
+  //  bool desired_curvature_sign = GET_BIT(to_send, 39U);
+  //  if (!desired_curvature_sign) {
+  //    desired_curvature_raw *= -1;
+  //  }
 
-    bool steer_req = (((GET_BYTE(to_send, 1U) >> 4) & 0x0FU) == 4U);
-    int steer_power = (GET_BYTE(to_send, 2U) >> 0) & 0x7FU;
+  //  bool steer_req = (((GET_BYTE(to_send, 1U) >> 4) & 0x0FU) == 4U);
+  //  int steer_power = (GET_BYTE(to_send, 2U) >> 0) & 0x7FU;
 
     //if (steer_curvature_cmd_checks(desired_curvature_raw, steer_power, steer_req, VOLKSWAGEN_MEB_STEERING_LIMITS)) {
     //  tx = false;
     //}
-  }
+  //}
 
   // Safety check for MSG_ACC_18 acceleration requests
   // To avoid floating point math, scale upward and compare to pre-scaled safety m/s2 boundaries
