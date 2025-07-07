@@ -26,6 +26,8 @@ def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power, p
     "Power_Boost": 1 if power_boost and lkas_enabled else 0, # this bit has not been observed with VW travel assist yet, keep it separated from POWER for now
     "RequestStatus": 4 if lkas_enabled else 2,
     "HighSendRate": lkas_enabled,
+    "Unknown_02": 3,
+    "Unknown_03": 31,
   }
   return packer.make_can_msg("HCA_03", bus, values)
 
