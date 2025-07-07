@@ -351,7 +351,7 @@ BO_ 317 QFK_01: 32 XXX
  SG_ CHECKSUM : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ NEW_SIGNAL_5 : 12|1@0+ (1,0) [0|1] "" XXX
- SG_ NEW_SIGNAL_9 : 14|1@0+ (1,0) [0|1] "" XXX
+ SG_ HCA_No_Override : 14|1@0+ (1,0) [0|1] "" XXX
  SG_ NEW_SIGNAL_8 : 16|1@0+ (1,0) [0|1] "" XXX
  SG_ LatCon_HCA_Accept : 17|2@1+ (1,0) [0|3] "" XXX
  SG_ NEW_SIGNAL_2 : 19|1@0+ (1,0) [0|1] "" XXX
