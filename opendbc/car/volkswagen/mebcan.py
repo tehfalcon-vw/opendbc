@@ -18,13 +18,13 @@ ACC_HUD_ENABLED  = 2
 ACC_HUD_DISABLED = 0
 
   
-def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power, power_boost, req_state):
+def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power, power_boost):
   values = {
     "Curvature": abs(apply_curvature), # in rad/m
     "Curvature_VZ": 1 if apply_curvature > 0 and lkas_enabled else 0,
     "Power": power if lkas_enabled else 0,  # maximum working value is 127, but observed max value with VW travel assist is 125
     "Power_Boost": 1 if power_boost and lkas_enabled else 0, # this bit has not been observed with VW travel assist yet, keep it separated from POWER for now
-    "RequestStatus": req_state if lkas_enabled else 2,
+    "RequestStatus": 4 if lkas_enabled else 2,
     "HighSendRate": lkas_enabled,
   }
   return packer.make_can_msg("HCA_03", bus, values)
