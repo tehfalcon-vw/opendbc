@@ -79,7 +79,7 @@ class CarControllerParams:
       self.STEER_DRIVER_MAX       = 300   # Driver torque 3.0 Nm, stop steering reduction at MIN
       self.STEERING_POWER_MAX     = 125   # HCA_03 maximum steering power
       self.STEERING_POWER_MIN     = 40    # HCA_03 minimum steering power
-      self.STEERING_POWER_STEPS   = 2     # HCA_03 steering power counter steps
+      self.STEERING_POWER_STEP    = 2     # HCA_03 steering power counter steps
       
       self.CURVATURE_LIMITS: CurvatureSteeringLimits = CurvatureSteeringLimits(
         0.195,  # Max curvature for steering command, m^-1
