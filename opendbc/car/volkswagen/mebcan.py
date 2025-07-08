@@ -25,8 +25,6 @@ def create_steering_control(packer, bus, apply_curvature, lkas_enabled, power):
     "Power": power if lkas_enabled else 0,
     "RequestStatus": 4 if lkas_enabled else 2,
     "HighSendRate": lkas_enabled,
-    "Unknown_02": 3,
-    "Unknown_03": 31,
   }
   return packer.make_can_msg("HCA_03", bus, values)
 
