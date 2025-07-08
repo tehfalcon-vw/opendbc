@@ -670,8 +670,7 @@ BO_ 768 MEB_ACC_01: 48 XXX
 
 BO_ 771 HCA_03: 24 XXX
  SG_ RequestStatus : 12|4@1+ (1,0) [0|15] "" XXX
- SG_ Power : 16|7@1+ (1,0) [0|125] "" XXX
- SG_ Power_Boost : 23|1@1+ (1,0) [0|1] "" XXX
+ SG_ Power : 16|8@1+ (0.4,0) [0.0|100.0] "Unit_Percent" XXX
  SG_ Curvature : 24|15@1+ (6.7e-06,0) [0|0.219] "Unit_rad/m" XXX
  SG_ Curvature_VZ : 39|1@1+ (1,0) [0|1] "" XXX
  SG_ Unknown_01 : 53|1@0+ (1,0) [0|1] "" XXX
