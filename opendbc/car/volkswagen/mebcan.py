@@ -110,20 +110,18 @@ def create_acc_buttons_control(packer, bus, gra_stock_values, cancel=False, resu
   return packer.make_can_msg("GRA_ACC_01", bus, values)
 
 
-def create_capacitive_wheel_touch(packer, bus, lat_active, klr_stock_values): # NOT TESTED
+def create_capacitive_wheel_touch(packer, bus, lat_active, klr_stock_values):
   values = {s: klr_stock_values[s] for s in [
-    "COUNTER",                     # Sync counter value to output
-    "KLR_Touchintensitaet_1",      # current touch
-    "KLR_Touchintensitaet_2",      # lower touch limit -> touch output 7, below 0
-    "KLR_Touchintensitaet_3",      # upper touch limit -> touch output 10
-    "KLR_Touchauswertung",         # touch output
+    "COUNTER", # Sync counter value to output
+    "KLR_Touchintensitaet_1",
+    "KLR_Touchintensitaet_2",
+    "KLR_Touchintensitaet_3",
+    "KLR_Touchauswertung",
   ]}
 
   if lat_active:
     values.update({
-      # don't know if manipulating KLR_Touchintensitaet_1 is neccessary
-      "KLR_Touchintensitaet_1": klr_stock_values["KLR_Touchintensitaet_3"] + 1, # current touch one increment over upper limit
-      "KLR_Touchauswertung": 10, # 10 emulates touch output over upper limit
+      "KLR_Touchauswertung": 10,
     })
 
   return packer.make_can_msg("KLR_01", bus, values)
