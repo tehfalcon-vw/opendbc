@@ -625,7 +625,7 @@ class MebExtraSignals:
     ("DCDC_03", 2),
   ]
   capacitive_steering_wheel_messages = [
-    ("KLR_01", 16),
+    ("KLR_01", 17),
   ]
   psd_messages = [
     ("PSD_04", 7),
