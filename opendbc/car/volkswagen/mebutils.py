@@ -45,11 +45,10 @@ def get_long_jerk_limits(enabled, override, distance, has_lead, accel, accel_las
   return jerk_up, jerk_down, dy_up, dy_down
 
 
-def get_long_control_limits(enabled: bool, speed: float, set_speed: float, distance: float, critical_state: bool):
+def get_long_control_limits(enabled: bool, speed: float, set_speed: float, distance: float, has_lead: bool, critical_state: bool):
   # control limits by distance are used to improve comfort while ensuring precise car reaction if neccessary
   # also used to reduce an effect of decel overshoot when target is breaking
   # limits are controlled mainly by distance of lead car
-  # problem: no data for approching a non car like target: for now keep limits at minimum if no lead is detected   
   if not enabled:
     return 0., 0.
 
@@ -64,12 +63,12 @@ def get_long_control_limits(enabled: bool, speed: float, set_speed: float, dista
     return lower_limit_min, upper_limit_min
 
   # how far can the true accel vary downwards from requested accel
-  upper_limit = np.interp(distance, [0, 100], [upper_limit_min, upper_limit_max]) # base line based on distance
+  upper_limit = np.interp(distance, [0, 100], [upper_limit_min, upper_limit_max]) if has_lead else upper_limit_max # base line based on distance
 
   # how far can the true accel vary upwards from requested accel
   set_speed_diff_up = max(0, abs(speed) - abs(set_speed)) # set speed difference down requested by user or speed overshoot (includes hud - real speed difference!)
   set_speed_diff_up_factor = np.interp(set_speed_diff_up, [1, 1.75], [1., 0.]) # faster requested speed decrease and less speed overshoot downhill 
-  lower_limit = np.interp(distance, [0, 100], [lower_limit_min, lower_limit_max]) # base line based on distance
+  lower_limit = np.interp(distance, [0, 100], [lower_limit_min, lower_limit_max]) if has_lead else lower_limit_max # base line based on distance
   lower_limit = lower_limit * set_speed_diff_up_factor
 
   return upper_limit, lower_limit
