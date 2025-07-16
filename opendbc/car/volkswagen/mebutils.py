@@ -2,13 +2,13 @@ import numpy as np
 from opendbc.car.common.conversions import Conversions as CV
 
 
-def get_long_jerk_limits(enabled, override, distance, accel, accel_last, jerk_up, jerk_down, dy_up, dy_down, dt,
+def get_long_jerk_limits(enabled, override, distance, has_lead, accel, accel_last, jerk_up, jerk_down, dy_up, dy_down, dt,
                          critical_state, jerk_limit_min=0.5, jerk_limit_max=5.0):
   # jerk limits by accel change and distance are used to improve comfort while ensuring a fast enough car reaction
   # override mechanics reminder:
   # (1) sending accel = 0 and directly setting jerk to zero results in round about steady accel until harder accel pedal press -> lack of control
   # (2) sending accel = 0 and allowing a high jerk results in a abrupt accel cut -> lack of comfort
-  filter_gain_distance = [50, 100]
+  filter_gain_distance = [20, 100]
   filter_gain_values = [0.9, 0.6]
                            
   if not enabled:
@@ -25,7 +25,7 @@ def get_long_jerk_limits(enabled, override, distance, accel, accel_last, jerk_up
     dy_up = 0.
     dy_down = 0.
   else:
-    filter_gain = np.interp(distance, filter_gain_distance, filter_gain_values)
+    filter_gain = np.interp(distance, filter_gain_distance, filter_gain_values) if has_lead else filter_gain_values[1]
     
     j = (accel - accel_last) / dt
 
