@@ -185,8 +185,9 @@ class CarController(CarControllerBase):
 
           critical_state = hud_control.visualAlert == VisualAlert.fcw
           upper_control_limit, lower_control_limit = get_long_control_limits(CC.enabled, CS.out.vEgo, hud_control.setSpeed, hud_control.leadDistance, critical_state)
-          self.long_jerk_up_last, self.long_jerk_down_last, self.long_dy_up_last, self.long_dy_down_last = get_long_jerk_limits(CC.enabled, long_override, hud_control.leadDistance, accel,
-                                                                                                                                self.accel_last, self.long_jerk_up_last,
+          self.long_jerk_up_last, self.long_jerk_down_last, self.long_dy_up_last, self.long_dy_down_last = get_long_jerk_limits(CC.enabled, long_override,
+                                                                                                                                hud_control.leadDistance, hud_control.leadVisible,
+                                                                                                                                accel, self.accel_last, self.long_jerk_up_last,
                                                                                                                                 self.long_jerk_down_last, self.long_dy_up_last,
                                                                                                                                 self.long_dy_down_last,
                                                                                                                                 DT_CTRL * self.CCP.ACC_CONTROL_STEP,
