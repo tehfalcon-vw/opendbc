@@ -8,7 +8,7 @@ def get_long_jerk_limits(enabled, override, distance, has_lead, accel, accel_las
   # override mechanics reminder:
   # (1) sending accel = 0 and directly setting jerk to zero results in round about steady accel until harder accel pedal press -> lack of control
   # (2) sending accel = 0 and allowing a high jerk results in a abrupt accel cut -> lack of comfort
-  filter_gain_distance = [20, 100]
+  filter_gain_distance = [0, 100]
   filter_gain_values = [0.9, 0.6]
                            
   if not enabled:
