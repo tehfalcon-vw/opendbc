@@ -209,6 +209,8 @@ struct CarState {
   lowSpeedAlert @56 :Bool;  # lost steering control due to a dynamic min steering speed
   blockPcmEnable @60 :Bool;  # whether to allow PCM to enable this frame
 
+  curvature @62 :Float32;
+
   # cruise state
   cruiseState @10 :CruiseState;
 
