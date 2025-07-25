@@ -66,7 +66,7 @@ class CarController(CarControllerBase):
         if CC.latActive:
           hca_enabled = True
           #actuator_curvature = sigmoid_curvature_boost_meb(actuators.curvature, CS.out.vEgo)
-          actuator_curvature = actuators.curvature + (CS.out.curvature - CC.currentCurvature) if not CC.curvatureControllerActive else actuators.curvature
+          actuator_curvature = actuators.curvature + (CS.out.steeringCurvature - CC.currentCurvature) if not CC.curvatureControllerActive else actuators.curvature
           apply_curvature, iso_limit_active = apply_std_curvature_limits(actuator_curvature, self.apply_curvature_last, CS.out.vEgoRaw, CC.rollDEPRECATED, CS.out.curvature,
                                                                          self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
 
@@ -79,7 +79,7 @@ class CarController(CarControllerBase):
         else:
           if self.steering_power_last > 0: # keep HCA alive until steering power has reduced to zero
             hca_enabled = True
-            apply_curvature = np.clip(CS.out.curvature, -self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX) # synchronize with current curvature
+            apply_curvature = np.clip(CS.out.steeringCurvature, -self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX) # synchronize with current curvature
             steering_power = max(self.steering_power_last - self.CCP.STEERING_POWER_STEP, 0)
           else: 
             hca_enabled = False
