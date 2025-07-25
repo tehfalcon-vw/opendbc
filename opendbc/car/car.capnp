@@ -188,6 +188,7 @@ struct CarState {
   brakeHoldActive @38 :Bool;
 
   # steering wheel
+  steeringCurvature @62 :Float32;  # EPS steering curvature equivalent in radiant
   steeringAngleDeg @7 :Float32;
   steeringAngleOffsetDeg @37 :Float32; # Offset betweens sensors in case there multiple
   steeringRateDeg @15 :Float32;
@@ -208,8 +209,6 @@ struct CarState {
   vehicleSensorsInvalid @52 :Bool;  # invalid steering angle readings, etc.
   lowSpeedAlert @56 :Bool;  # lost steering control due to a dynamic min steering speed
   blockPcmEnable @60 :Bool;  # whether to allow PCM to enable this frame
-
-  curvature @62 :Float32;
 
   # cruise state
   cruiseState @10 :CruiseState;
