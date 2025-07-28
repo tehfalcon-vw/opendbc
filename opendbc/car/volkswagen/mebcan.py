@@ -267,21 +267,17 @@ def create_acc_hud_control(packer, bus, acc_control, set_speed, lead_visible, di
     "ACC_Display_Prio":              0 if fcw_alert and acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 1, # probably keeping warning in front
     "ACC_Optischer_Fahrerhinweis":   1 if fcw_alert and acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # enables optical warning
     "ACC_Akustischer_Fahrerhinweis": 3 if fcw_alert and acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # enables sound warning
-    "ACC_Texte_Zusatzanz_02":        14, #11 if fcw_alert and acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # type of warning: Break!
+    "ACC_Texte_Zusatzanz_02":        11 if fcw_alert and acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # type of warning: Break!
     "ACC_Abstandsindex_02":          569, # seems to be default for MEB but is not static in every case
     "ACC_EGO_Fahrzeug":              2 if fcw_alert and acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else (1 if acc_control == ACC_HUD_ACTIVE else 0), # red car warn symbol for fcw
     "Lead_Type_Detected":            1 if lead_visible else 0, # object should be displayed
     "Lead_Type":                     3 if lead_visible else 0, # displaying a car
-    "Lead_Position":                 2,
     "Lead_Distance":                 distance if lead_visible else 0, # hud distance of object
-    "Lead_Distance_Right":           35, # hud distance of object
-    "Lead_Distance_Left":            25 , # hud distance of object
     "ACC_Enabled":                   1 if acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0,
     "ACC_Standby_Override":          1 if acc_control != ACC_HUD_ACTIVE else 0,
     "Street_Color":                  1 if acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0, # light grey (1) or dark (0) street
     "Lead_Brightness":               3 if acc_control == ACC_HUD_ACTIVE else 0, # object shows in colour
     "ACC_Events":                    acc_event, # e.g. pACC Events
-    "ACC_Event_Wunschgeschw":        speed_limit if acc_control in (ACC_HUD_ACTIVE, ACC_HUD_OVERRIDE) else 0x3FF,
     "Zeitluecke_1":                  get_desired_gap(distance_bars, desired_gap, 1), # desired distance to lead object for distance bar 1
     "Zeitluecke_2":                  get_desired_gap(distance_bars, desired_gap, 2), # desired distance to lead object for distance bar 2
     "Zeitluecke_3":                  get_desired_gap(distance_bars, desired_gap, 3), # desired distance to lead object for distance bar 3
