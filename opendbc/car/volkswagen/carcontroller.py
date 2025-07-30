@@ -174,7 +174,7 @@ class CarController(CarControllerBase):
           #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control -> clean exit of ACC car controls
           #   * (1 frame of HMS RAMP RELEASE is enough, but lower the possibility of panda safety blocking it)
           #   * HMS starting state only as long as hold confirmation is send from car ( > ~3 sec with HMS starting can cause error)
-          starting = actuators.longControlState == LongCtrlState.pid and CS.esp_hold_confirmation
+          starting = actuators.longControlState == LongCtrlState.pid and CS.esp_hold_confirmation and CS.out.vEgo < self.CP.vEgoStopping # only allow for low speed as safety measure (not needed)
           
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
 
