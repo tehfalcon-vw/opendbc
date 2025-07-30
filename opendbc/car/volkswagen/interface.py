@@ -110,7 +110,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalActuatorDelay = 0.4
       ret.radarDelay = 0.4
       ret.longitudinalTuning.kiBP = [0., 10.]
-      ret.longitudinalTuning.kiV = [0.2, 0.]
+      ret.longitudinalTuning.kiV = [0.25, 0.]
 
     ret.alphaLongitudinalAvailable = ret.networkLocation == NetworkLocation.gateway or docs
     if alpha_long:
