@@ -366,24 +366,22 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     violation |= max_limit_check(desired_curvature, limits.max_curvature, -limits.max_curvature);
 
     // ISO jerk limit
-    float ts_elapsed           = limits.send_rate;
-    float speed                = MAX((vehicle_speed.min / VEHICLE_SPEED_FACTOR) - 1., 1.0);
-    float curvature_rate_limit = ISO_LATERAL_JERK / (speed * speed);  // rad/m/s
+    float fudged_speed           = MAX((vehicle_speed.min / VEHICLE_SPEED_FACTOR) - 1., 1.0);
+    float max_curvature_rate_sec = ISO_LATERAL_JERK / (fudged_speed * fudged_speed);  // rad/m/s
+    
+    float max_curvature_delta     = max_curvature_rate_sec * float(limits.send_rate);
+    float max_curvature_delta_can = (max_curvature_delta * limits.curvature_to_can) + 1.;
 
-    float curvature_last  = desired_curvature_last / limits.curvature_to_can;
-    float curvature_up    = curvature_last + curvature_rate_limit * ts_elapsed;
-    float curvature_down  = curvature_last - curvature_rate_limit * ts_elapsed;
-
-    int highest_desired_curvature = (curvature_up   * limits.curvature_to_can) + 1.;
-    int lowest_desired_curvature  = (curvature_down * limits.curvature_to_can) - 1.;
+    int highest_desired_curvature = desired_curvature_last + max_curvature_delta_can;
+    int lowest_desired_curvature  = desired_curvature_last - max_curvature_delta_can;
 
     // ISO lateral limit    
     //dynamic roll from OP via CAN
     float max_lat_accel =  ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
     float min_lat_accel = -ISO_LATERAL_ACCEL - (roll.values[0] * EARTH_G);
 
-    float max_curvature_upper = max_lat_accel / (speed * speed);
-    float max_curvature_lower = min_lat_accel / (speed * speed);
+    float max_curvature_upper = max_lat_accel / (fudged_speed * fudged_speed);
+    float max_curvature_lower = min_lat_accel / (fudged_speed * fudged_speed);
 
     max_curvature_upper = (max_curvature_upper * limits.curvature_to_can) + 1.;
     max_curvature_lower = (max_curvature_lower * limits.curvature_to_can) - 1.;
