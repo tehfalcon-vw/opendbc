@@ -176,7 +176,6 @@ class CarController(CarControllerBase):
           #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control -> clean exit of ACC car controls
           #   * (1 frame of HMS RAMP RELEASE is enough, but lower the possibility of panda safety blocking it)
           #   * continuous starting condition not longer than ~ 3 seconds
-          #   * yet not prevented error for fast fluctuating HMS state changes because of fluctuating lead detection at start (edge case)
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
 
           long_override = CC.cruiseControl.override or CS.out.gasPressed
