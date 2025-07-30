@@ -369,7 +369,7 @@ bool steer_curvature_cmd_checks(int desired_curvature, int desired_steer_power, 
     float fudged_speed           = MAX((vehicle_speed.min / VEHICLE_SPEED_FACTOR) - 1., 1.0);
     float max_curvature_rate_sec = ISO_LATERAL_JERK / (fudged_speed * fudged_speed);  // rad/m/s
     
-    float max_curvature_delta     = max_curvature_rate_sec * float(limits.send_rate);
+    float max_curvature_delta     = max_curvature_rate_sec * (float)limits.send_rate;
     float max_curvature_delta_can = (max_curvature_delta * limits.curvature_to_can) + 1.;
 
     int highest_desired_curvature = desired_curvature_last + max_curvature_delta_can;
