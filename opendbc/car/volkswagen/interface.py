@@ -121,13 +121,14 @@ class CarInterface(CarInterfaceBase):
         ret.minEnableSpeed = 4.5
 
     ret.pcmCruise = not ret.openpilotLongitudinalControl
-    ret.vEgoStarting = 0.1
     ret.autoResumeSng = ret.minEnableSpeed == -1
 
     if ret.flags & VolkswagenFlags.MEB:
+      ret.vEgoStarting = 0.5
       ret.vEgoStopping = 0.1
       ret.stopAccel = -1.1 # stock stopped accel
     else:
+      ret.vEgoStarting = 0.1
       ret.vEgoStopping = 0.5
       ret.stopAccel = -0.55
 
