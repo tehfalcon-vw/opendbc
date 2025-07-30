@@ -31,6 +31,7 @@ class CarController(CarControllerBase):
     self.long_dy_down_last = 0.
     self.long_override_counter = 0
     self.long_disabled_counter = 0
+    self.long_starting_counter = 0.
     self.gra_acc_counter_last = None
     self.eps_timer_soft_disable_alert = False
     self.hca_frame_timer_running = 0
@@ -174,6 +175,7 @@ class CarController(CarControllerBase):
           # Logic to prevent car error with EPB:
           #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control -> clean exit of ACC car controls
           #   * (1 frame of HMS RAMP RELEASE is enough, but lower the possibility of panda safety blocking it)
+          #   * continuous starting condition not longer than ~ 3 seconds
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
 
           long_override = CC.cruiseControl.override or CS.out.gasPressed
@@ -182,6 +184,11 @@ class CarController(CarControllerBase):
 
           self.long_disabled_counter = min(self.long_disabled_counter + 1, 5) if not CC.enabled else 0
           long_disabling = not CC.enabled and self.long_disabled_counter < 5
+
+          self.long_starting_counter = self.long_starting_counter + self.CCP.ACC_CONTROL_STEP * DT_CTRL if starting else 0.
+          if self.long_starting_counter > 2.0:
+            starting = False
+            self.long_starting_counter = 0.
 
           critical_state = hud_control.visualAlert == VisualAlert.fcw
           upper_control_limit, lower_control_limit = get_long_control_limits(CC.enabled, CS.out.vEgo, hud_control.setSpeed, hud_control.leadDistance, hud_control.leadVisible, critical_state)
