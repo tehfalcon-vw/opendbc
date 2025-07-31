@@ -109,9 +109,9 @@ class CarInterface(CarInterfaceBase):
     if ret.flags & VolkswagenFlags.MEB:
       ret.longitudinalActuatorDelay = 0.4
       ret.radarDelay = 0.4
-      ret.longitudinalTuning.kpBP = [0., 15.]
+      ret.longitudinalTuning.kpBP = [0., 20.]
       ret.longitudinalTuning.kiBP = [0., 10.]
-      ret.longitudinalTuning.kpV = [0.4, 0.]
+      ret.longitudinalTuning.kpV = [0.6, 0.]
       ret.longitudinalTuning.kiV = [0.25, 0.]
 
     ret.alphaLongitudinalAvailable = ret.networkLocation == NetworkLocation.gateway or docs
@@ -128,7 +128,7 @@ class CarInterface(CarInterfaceBase):
     if ret.flags & VolkswagenFlags.MEB:
       ret.startingState = True
       ret.startAccel = 1. # ~0.85 m/s^2 for brake release
-      ret.vEgoStarting = 0.5
+      ret.vEgoStarting = 0.1 # up to ~0.5 m/s acc starting state is neccessary to not fault the car (vEgoStarting is used for start accel only)
       ret.vEgoStopping = 0.1
       ret.stopAccel = -1.1 # stock stopped accel
     else:
