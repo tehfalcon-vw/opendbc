@@ -539,7 +539,7 @@ struct CarParams {
   startingState @70 :Bool; # Does this car make use of special starting state
 
   steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
-  useCarSteerCurvature @77 :Bool; # use EPS steering curvature interpretation as correction
+  useCarSteerCurvature @78 :Bool; # use EPS steering curvature interpretation as correction
   longitudinalActuatorDelay @58 :Float32; # Gas/Brake actuator delay in seconds
   openpilotLongitudinalControl @37 :Bool; # is openpilot doing the longitudinal control?
   carVin @38 :Text; # VIN number queried during fingerprinting
