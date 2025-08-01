@@ -129,7 +129,6 @@ class CarInterface(CarInterfaceBase):
 
     if ret.flags & VolkswagenFlags.MEB:
       ret.startingState = True # OP long starting state is used
-      ret.useCarStartingState = True # use a long control starting state car flag
       ret.useCarBrakeHoldState = True # use start accel until confirmed brake release from car
       ret.startAccel = 1. # ~0.85 m/s^2 for brake release
       ret.vEgoStarting = 0.1 # up to ~0.5 m/s acc starting state is neccessary to not fault the car (vEgoStarting is used for start accel only)
