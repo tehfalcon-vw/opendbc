@@ -173,9 +173,7 @@ class CarController(CarControllerBase):
           # Logic to prevent car error with EPB:
           #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control -> clean exit of ACC car controls
           #   * (1 frame of HMS RAMP RELEASE is enough, but lower the possibility of panda safety blocking it)
-          starting_by_state = actuators.longControlState == LongCtrlState.starting # OP starting state is used for instant movement with start accel
-          starting_by_speed = actuators.longControlState == LongCtrlState.pid and CS.out.vEgo < self.CCP.ACC_VEGO_STARTING_STATE # starting by speed up to 0.5 m/s to not fault the car
-          starting = starting_by_state or starting_by_speed
+          starting = actuators.longControlState == LongCtrlState.starting
           
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
 
