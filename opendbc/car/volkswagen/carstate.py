@@ -270,7 +270,6 @@ class CarState(CarStateBase):
     ret.vEgoRaw = float(np.mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr]))
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw == 0
-    ret.drivingConfirmation = ret.vEgoRaw != 0 # TODO
 
     # Update EPS position and state info. For signed values, VW sends the sign in a separate signal.
     # LWI_01, MEP_EPS_01 steering angle differs from real steering angle (dynamic steering)
