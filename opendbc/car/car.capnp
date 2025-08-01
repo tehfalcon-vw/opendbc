@@ -209,7 +209,6 @@ struct CarState {
   vehicleSensorsInvalid @52 :Bool;  # invalid steering angle readings, etc.
   lowSpeedAlert @56 :Bool;  # lost steering control due to a dynamic min steering speed
   blockPcmEnable @60 :Bool;  # whether to allow PCM to enable this frame
-  drivingConfirmation @62 :Bool;
 
   # cruise state
   cruiseState @10 :CruiseState;
@@ -540,8 +539,7 @@ struct CarParams {
   startingState @70 :Bool; # Does this car make use of special starting state
 
   useCarSteerCurvature @78 :Bool; # use EPS steering curvature interpretation as correction
-  useCarStartingState @79 :Bool; # use car long control startup confirmation
-  useCarBrakeHoldState @80 :Bool; # use car brake hold confirmation for OP startAccel usage
+  useCarBrakeHoldState @79 :Bool; # use car brake hold confirmation for OP startAccel usage
 
   steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
   longitudinalActuatorDelay @58 :Float32; # Gas/Brake actuator delay in seconds
