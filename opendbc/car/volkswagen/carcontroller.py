@@ -1,10 +1,11 @@
 import numpy as np
-from opendbc.can.packer import CANPacker
+
+from opendbc.can import CANPacker
 from opendbc.car import Bus, apply_driver_steer_torque_limits, apply_std_curvature_limits, structs, DT_CTRL
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarControllerBase
 from opendbc.car.volkswagen import mqbcan, pqcan, mebcan, pandacan
-from opendbc.car.volkswagen.values import CANBUS, CarControllerParams, VolkswagenFlags
+from opendbc.car.volkswagen.values import CanBus, CarControllerParams, VolkswagenFlags
 from opendbc.car.volkswagen.mebutils import get_long_jerk_limits, get_long_control_limits, map_speed_to_acc_tempolimit
 
 VisualAlert = structs.CarControl.HUDControl.VisualAlert
@@ -15,10 +16,10 @@ class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP, CP_SP):
     super().__init__(dbc_names, CP, CP_SP)
     self.CCP = CarControllerParams(CP)
+    self.CAN = CanBus(CP)
     self.CCS = pqcan if CP.flags & VolkswagenFlags.PQ else (mebcan if CP.flags & VolkswagenFlags.MEB else mqbcan)
     self.PC = pandacan
     self.packer_pt = CANPacker(dbc_names[Bus.pt])
-    self.ext_bus = CANBUS.pt if CP.networkLocation == structs.CarParams.NetworkLocation.fwdCamera else CANBUS.cam
     self.aeb_available = not CP.flags & VolkswagenFlags.PQ
 
     self.apply_torque_last = 0
@@ -52,7 +53,7 @@ class CarController(CarControllerBase):
     # **** DATA FOR PANDA VIA CAN ************************************************ #
     if self.frame % self.CCP.STEER_STEP == 0:
       if self.CP.flags & VolkswagenFlags.MEB:
-        can_sends.append(self.PC.create_panda_data(self.packer_pt, CANBUS.pt, CC.rollDEPRECATED))
+        can_sends.append(self.PC.create_panda_data(self.packer_pt, self.CAN.pt, CC.rollDEPRECATED))
 
     # **** Steering Controls ************************************************ #
 
@@ -86,7 +87,7 @@ class CarController(CarControllerBase):
             apply_curvature = 0. # inactive curvature
             steering_power = 0
 
-        can_sends.append(self.CCS.create_steering_control(self.packer_pt, CANBUS.pt, apply_curvature, hca_enabled, steering_power))
+        can_sends.append(self.CCS.create_steering_control(self.packer_pt, self.CAN.pt, apply_curvature, hca_enabled, steering_power))
         self.apply_curvature_last = apply_curvature
         self.steering_power_last = steering_power
         
@@ -121,7 +122,7 @@ class CarController(CarControllerBase):
 
         self.eps_timer_soft_disable_alert = self.hca_frame_timer_running > self.CCP.STEER_TIME_ALERT / DT_CTRL
         self.apply_torque_last = apply_torque
-        can_sends.append(self.CCS.create_steering_control(self.packer_pt, CANBUS.pt, apply_torque, hca_enabled))
+        can_sends.append(self.CCS.create_steering_control(self.packer_pt, self.CAN.pt, apply_torque, hca_enabled))
 
       if self.CP.flags & VolkswagenFlags.STOCK_HCA_PRESENT:
         # Pacify VW Emergency Assist driver inactivity detection by changing its view of driver steering input torque
@@ -130,7 +131,7 @@ class CarController(CarControllerBase):
         ea_simulated_torque = float(np.clip(apply_torque * 2, -self.CCP.STEER_MAX, self.CCP.STEER_MAX))
         if abs(CS.out.steeringTorque) > abs(ea_simulated_torque):
           ea_simulated_torque = CS.out.steeringTorque
-        can_sends.append(self.CCS.create_eps_update(self.packer_pt, CANBUS.cam, CS.eps_stock_values, ea_simulated_torque))
+        can_sends.append(self.CCS.create_eps_update(self.packer_pt, self.CAN.cam, CS.eps_stock_values, ea_simulated_torque))
 
     # Emergency Assist intervention
     if self.CP.flags & VolkswagenFlags.MEB and self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT:
@@ -138,7 +139,7 @@ class CarController(CarControllerBase):
       # propably EA is stock activated only for cars equipped with capacitive steering wheel
       # (also stock long does resume from stop as long as hands on is detected additionally to OP resume spam)
       if self.frame % 6 == 0:
-        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.ext_bus, CC.latActive, CS.klr_stock_values))
+        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.ext, CC.latActive, CS.klr_stock_values))
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
@@ -150,7 +151,7 @@ class CarController(CarControllerBase):
         blinker_active = CS.left_blinker_active or CS.right_blinker_active
         left_blinker = CC.leftBlinker if not blinker_active else False
         right_blinker = CC.rightBlinker if not blinker_active else False
-        can_sends.append(mebcan.create_blinker_control(self.packer_pt, CANBUS.pt, CS.ea_hud_stock_values, left_blinker, right_blinker))
+        can_sends.append(mebcan.create_blinker_control(self.packer_pt, self.CAN.pt, CS.ea_hud_stock_values, left_blinker, right_blinker))
 
     # **** Cruise Controls ************************************************** #
     
@@ -197,7 +198,7 @@ class CarController(CarControllerBase):
           acc_control = self.CCS.acc_control_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled, long_override)          
           acc_hold_type = self.CCS.acc_hold_type(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled, starting, stopping,
                                                  CS.esp_hold_confirmation, long_override, long_override_begin, long_disabling)
-          can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, CANBUS.pt, CS.acc_type, CC.enabled,
+          can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, self.CAN.pt, CS.acc_type, CC.enabled,
                                                              self.long_jerk_up_last, self.long_jerk_down_last, upper_control_limit, lower_control_limit,
                                                              accel, acc_control, acc_hold_type, stopping, starting, CS.out.vEgoRaw * CV.MS_TO_KPH,
                                                              long_override, CS.travel_assist_available))
@@ -207,7 +208,7 @@ class CarController(CarControllerBase):
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.longActive else 0)
         
           acc_control = self.CCS.acc_control_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.longActive)
-          can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, CANBUS.pt, CS.acc_type, CC.longActive, accel,
+          can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, self.CAN.pt, CS.acc_type, CC.longActive, accel,
                                                              acc_control, stopping, starting, CS.esp_hold_confirmation))
         self.accel_last = accel
 
@@ -226,10 +227,10 @@ class CarController(CarControllerBase):
 
       if self.CP.flags & VolkswagenFlags.MEB:
         sound_alert = self.CCP.LDW_SOUNDS["Beep"] if hud_alert == self.CCP.LDW_MESSAGES["laneAssistTakeOver"] else self.CCP.LDW_SOUNDS["None"]
-        can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, CANBUS.pt, CS.ldw_stock_values, CC.latActive,
+        can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, self.CAN.pt, CS.ldw_stock_values, CC.latActive,
                                                          CS.out.steeringPressed, hud_alert, hud_control, sound_alert))
       else:
-        can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, CANBUS.pt, CS.ldw_stock_values, CC.latActive,
+        can_sends.append(self.CCS.create_lka_hud_control(self.packer_pt, self.CAN.pt, CS.ldw_stock_values, CC.latActive,
                                                          CS.out.steeringPressed, hud_alert, hud_control))
 
     if hud_control.leadDistanceBars != self.lead_distance_bars_last:
@@ -254,7 +255,7 @@ class CarController(CarControllerBase):
           
           acc_hud_event = self.CCS.acc_hud_event(acc_hud_status, CS.esp_hold_confirmation, sl_predicative_active, sl_active)
           
-          can_sends.append(self.CCS.create_acc_hud_control(self.packer_pt, CANBUS.pt, acc_hud_status, hud_control.setSpeed * CV.MS_TO_KPH,
+          can_sends.append(self.CCS.create_acc_hud_control(self.packer_pt, self.CAN.pt, acc_hud_status, hud_control.setSpeed * CV.MS_TO_KPH,
                                                            hud_control.leadVisible, hud_control.leadDistanceBars + 1, show_distance_bars,
                                                            CS.esp_hold_confirmation, distance, gap, fcw_alert, acc_hud_event, speed_limit))
 
@@ -265,14 +266,14 @@ class CarController(CarControllerBase):
           acc_hud_status = self.CCS.acc_hud_status_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.longActive)
           # FIXME: follow the recent displayed-speed updates, also use mph_kmh toggle to fix display rounding problem?
           set_speed = hud_control.setSpeed * CV.MS_TO_KPH
-          can_sends.append(self.CCS.create_acc_hud_control(self.packer_pt, CANBUS.pt, acc_hud_status, set_speed,
+          can_sends.append(self.CCS.create_acc_hud_control(self.packer_pt, self.CAN.pt, acc_hud_status, set_speed,
                                                            lead_distance, hud_control.leadDistanceBars))
 
     # **** Stock ACC Button Controls **************************************** #
 
     gra_send_ready = CS.gra_stock_values["COUNTER"] != self.gra_acc_counter_last
     if gra_send_ready:
-      bus_send = CANBUS.main if self.CP.flags & VolkswagenFlags.PQ else self.ext_bus
+      bus_send = self.CAN.main if self.CP.flags & VolkswagenFlags.PQ else self.CAN.ext
       if self.CP.pcmCruise and (CC.cruiseControl.cancel or CC.cruiseControl.resume):
         can_sends.append(self.CCS.create_acc_buttons_control(self.packer_pt, bus_send, CS.gra_stock_values,
                                                              cancel=CC.cruiseControl.cancel, resume=CC.cruiseControl.resume))
