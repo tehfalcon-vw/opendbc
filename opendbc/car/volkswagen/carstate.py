@@ -247,7 +247,7 @@ class CarState(CarStateBase):
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
     # Update vehicle speed and acceleration from ABS wheel speeds.
-    ret.wheelSpeeds = self.get_wheel_speeds(
+    self.parse_wheel_speeds(ret,
       pt_cp.vl["ESC_51"]["VL_Radgeschw"],
       pt_cp.vl["ESC_51"]["VR_Radgeschw"],
       pt_cp.vl["ESC_51"]["HL_Radgeschw"],
@@ -256,6 +256,7 @@ class CarState(CarStateBase):
 
     ret.vEgoRaw = float(np.mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr]))
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
+    ret.vEgoCluster = pt_cp.vl["Kombi_01"]["KBI_angez_Geschw"] * CV.KPH_TO_MS
     ret.standstill = ret.vEgoRaw == 0
 
     # Update EPS position and state info. For signed values, VW sends the sign in a separate signal.
@@ -277,8 +278,8 @@ class CarState(CarStateBase):
     #ret.carFaultedNonCritical = cam_cp.vl["EA_01"]["EA_Funktionsstatus"] in (3, 4, 5, 6) # prepared, not tested
 
     # Update gas, brakes, and gearshift.
-    ret.gasPressed   = pt_cp.vl["Motor_54"]["Accelerator_Pressure"] > 0
     ret.gas          = pt_cp.vl["Motor_54"]["Accelerator_Pressure"]
+    ret.gasPressed   = ret.gas > 0
     ret.brakePressed = bool(pt_cp.vl["Motor_14"]["MO_Fahrer_bremst"]) # includes regen braking by user
     ret.brake        = pt_cp.vl["ESC_51"]["Brake_Pressure"]
     ret.parkingBrake = pt_cp.vl["Gateway_73"]["EPB_Status"] in (1, 4) # EPB closing or closed

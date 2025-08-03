@@ -41,7 +41,7 @@ class CarInterface(CarInterfaceBase):
 
     elif ret.flags & VolkswagenFlags.MEB:
       # Set global MEB parameters
-      ret.safetyConfigs = [get_safety_config(structs.CarParams.SafetyModel.volkswagenMeb)]
+      safety_configs = [get_safety_config(structs.CarParams.SafetyModel.volkswagenMeb)]
       ret.enableBsm = 0x24C in fingerprint[0]  # MEB_Side_Assist_01
       ret.transmissionType = TransmissionType.direct
       #ret.steerControlType = structs.CarParams.SteerControlType.angle
@@ -55,6 +55,9 @@ class CarInterface(CarInterfaceBase):
 
       if ret.networkLocation == NetworkLocation.gateway:
         ret.radarUnavailable = False
+        
+      if 0x6B8 in fingerprint[0]:  # Kombi_03
+        ret.flags |= VolkswagenFlags.KOMBI_PRESENT.value
 
       if 0x25D in fingerprint[0]:  # KLR_01
         ret.flags |= VolkswagenFlags.STOCK_KLR_PRESENT.value
