@@ -47,7 +47,6 @@ static uint8_t volkswagen_meb_get_counter(const CANPacket_t *msg) {
 }
 
 static uint32_t volkswagen_meb_compute_crc(const CANPacket_t *msg) {
-  int msg->addr = GET_msg->addr(msg);
   int len = GET_LEN(msg);
 
   // This is CRC-8H2F/AUTOSAR with a twist. See the OpenDBC implementation
