@@ -254,8 +254,6 @@ class CarState(CarStateBase):
       pt_cp.vl["ESC_51"]["HR_Radgeschw"],
     )
 
-    ret.vEgoRaw = float(np.mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr]))
-    ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.vEgoCluster = pt_cp.vl["Kombi_01"]["KBI_angez_Geschw"] * CV.KPH_TO_MS
     ret.standstill = ret.vEgoRaw == 0
 
