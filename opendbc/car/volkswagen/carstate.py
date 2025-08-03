@@ -474,7 +474,6 @@ class CarState(CarStateBase):
       # sig_address, frequency
       ("Bremse_1", 100),    # From J104 ABS/ESP controller
       ("Bremse_3", 100),    # From J104 ABS/ESP controller
-      ("Lenkhilfe_1", 50),  # From J500 Steering Assist with integrated sensors
       ("Lenkhilfe_3", 100),  # From J500 Steering Assist with integrated sensors
       ("Lenkwinkel_1", 100),  # From J500 Steering Assist with integrated sensors
       ("Motor_3", 100),     # From J623 Engine control module
@@ -512,7 +511,10 @@ class CarState(CarStateBase):
       if CP.enableBsm:
         cam_messages += PqExtraSignals.bsm_radar_messages
         
-    main_messages = []
+    main_messages = [
+      ("Lenkhilfe_1", 50),  # From J500 Steering Assist with integrated sensors
+    ]
+    
     if CP.networkLocation == NetworkLocation.gateway:
       main_messages += PqExtraSignals.fwd_radar_main_messages
 
