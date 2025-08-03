@@ -46,14 +46,14 @@ class CarState(CarStateBase):
 
   def update(self, can_parsers) -> tuple[structs.CarState, structs.CarStateSP]:
     pt_cp = can_parsers[Bus.pt]
-    main_cp = can_parsers[Bus.main]
+    aux_cp = can_parsers[Bus.aux]
     cam_cp = can_parsers[Bus.cam]
     ext_cp = pt_cp if self.CP.networkLocation == NetworkLocation.fwdCamera else cam_cp
 
     if self.CP.flags & VolkswagenFlags.PQ:
-      return self.update_pq(pt_cp, cam_cp, main_cp, ext_cp)
+      return self.update_pq(pt_cp, cam_cp, aux_cp, ext_cp)
     elif self.CP.flags & VolkswagenFlags.MEB:
-      return self.update_meb(pt_cp, main_cp, cam_cp, ext_cp)
+      return self.update_meb(pt_cp, aux_cp, cam_cp, ext_cp)
 
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
@@ -149,7 +149,7 @@ class CarState(CarStateBase):
     self.frame += 1
     return ret, ret_sp
 
-  def update_pq(self, pt_cp, cam_cp, main_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]:
+  def update_pq(self, pt_cp, cam_cp, aux_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]:
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
 
@@ -159,7 +159,7 @@ class CarState(CarStateBase):
     ret.standstill = ret.vEgoRaw == 0
 
     # Update EPS position and state info. For signed values, VW sends the sign in a separate signal.
-    ret.steeringAngleOffsetDeg = main_cp.vl["Lenkhilfe_1"]["Lenkwinkel_Offset"] # no VZ known, only suited for my car right now!!!!!!!!!!!!
+    ret.steeringAngleOffsetDeg = aux_cp.vl["Lenkhilfe_1"]["Lenkwinkel_Offset"] # no VZ known, only suited for my car right now!!!!!!!!!!!!
     steeringAngleDeg = pt_cp.vl["Lenkhilfe_3"]["LH3_BLW"] * (1, -1)[int(pt_cp.vl["Lenkhilfe_3"]["LH3_BLWSign"])]
     ret.steeringAngleDeg = steeringAngleDeg - ret.steeringAngleOffsetDeg
     ret.steeringRateDeg = pt_cp.vl["Lenkwinkel_1"]["Lenkradwinkel_Geschwindigkeit"] * (1, -1)[int(pt_cp.vl["Lenkwinkel_1"]["Lenkradwinkel_Geschwindigkeit_S"])]
@@ -219,13 +219,13 @@ class CarState(CarStateBase):
     ret.cruiseState.available = bool(pt_cp.vl["Motor_5"]["GRA_Hauptschalter"])
     ret.cruiseState.enabled = pt_cp.vl["Motor_2"]["GRA_Status"] in (1, 2)
     if self.CP.pcmCruise:
-      ret.accFaulted = main_cp.vl["ACC_GRA_Anzeige"]["ACA_StaACC"] in (6, 7)
+      ret.accFaulted = aux_cp.vl["ACC_GRA_Anzeige"]["ACA_StaACC"] in (6, 7)
     else:
       ret.accFaulted = pt_cp.vl["Motor_2"]["GRA_Status"] == 3
 
     # Update ACC setpoint. When the setpoint reads as 255, the driver has not
     # yet established an ACC setpoint, so treat it as zero.
-    ret.cruiseState.speed = main_cp.vl["ACC_GRA_Anzeige"]["ACA_V_Wunsch"] * CV.KPH_TO_MS
+    ret.cruiseState.speed = aux_cp.vl["ACC_GRA_Anzeige"]["ACA_V_Wunsch"] * CV.KPH_TO_MS
     if ret.cruiseState.speed > 70:  # 255 kph in m/s == no current setpoint
       ret.cruiseState.speed = 0
 
@@ -243,7 +243,7 @@ class CarState(CarStateBase):
     self.frame += 1
     return ret, ret_sp
 
-  def update_meb(self, pt_cp, main_cp, cam_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]:
+  def update_meb(self, pt_cp, aux_cp, cam_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]:
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
     # Update vehicle speed and acceleration from ABS wheel speeds.
@@ -337,9 +337,9 @@ class CarState(CarStateBase):
     # Speed Limit
     raining = pt_cp.vl["RLS_01"]["RS_Regenmenge"] > 0
     vze_01_values = cam_cp.vl["MEB_VZE_01"] # Traffic Sign Recognition
-    psd_04_values = main_cp.vl["PSD_04"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {} # Predicative Street Data
-    psd_05_values = main_cp.vl["PSD_05"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {}
-    psd_06_values = main_cp.vl["PSD_06"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {}
+    psd_04_values = aux_cp.vl["PSD_04"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {} # Predicative Street Data
+    psd_05_values = aux_cp.vl["PSD_05"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {}
+    psd_06_values = aux_cp.vl["PSD_06"] if self.CP.flags & VolkswagenFlags.STOCK_PSD_PRESENT else {}
 
     self.speed_limit_mgr.update(ret.vEgo, psd_04_values, psd_05_values, psd_06_values, vze_01_values, raining)
     ret.cruiseState.speedLimit = self.speed_limit_mgr.get_speed_limit()
@@ -367,12 +367,12 @@ class CarState(CarStateBase):
     # EV battery details
     ret.batteryDetails.charge = pt_cp.vl["Motor_16"]["MO_Energieinhalt_BMS"] # battery charge WattHours
     if self.CP.networkLocation == NetworkLocation.gateway:
-      ret.batteryDetails.heaterActive = bool(main_cp.vl["MEB_HVEM_03"]["PTC_ON"]) # battery heater active
-      ret.batteryDetails.voltage      = main_cp.vl["MEB_HVEM_01"]["Battery_Voltage"] # battery voltage
-      ret.batteryDetails.capacity     = main_cp.vl["BMS_04"]["BMS_Kapazitaet_02"] * 355 # EV battery capacity Ah * nominal voltage cupra born WattHours
+      ret.batteryDetails.heaterActive = bool(aux_cp.vl["MEB_HVEM_03"]["PTC_ON"]) # battery heater active
+      ret.batteryDetails.voltage      = aux_cp.vl["MEB_HVEM_01"]["Battery_Voltage"] # battery voltage
+      ret.batteryDetails.capacity     = aux_cp.vl["BMS_04"]["BMS_Kapazitaet_02"] * 355 # EV battery capacity Ah * nominal voltage cupra born WattHours
       ret.batteryDetails.soc          = ret.batteryDetails.charge / ret.batteryDetails.capacity * 100 if ret.batteryDetails.capacity > 0 else 0 # battery SoC in percent
-      ret.batteryDetails.power        = main_cp.vl["MEB_HVEM_01"]["Engine_Power"] # engine power output
-      ret.batteryDetails.temperature  = main_cp.vl["DCDC_03"]["DC_Temperatur"] # dcdc converter temperature
+      ret.batteryDetails.power        = aux_cp.vl["MEB_HVEM_01"]["Engine_Power"] # engine power output
+      ret.batteryDetails.temperature  = aux_cp.vl["DCDC_03"]["DC_Temperatur"] # dcdc converter temperature
 
     self.frame += 1
     return ret, ret_sp
@@ -420,7 +420,7 @@ class CarState(CarStateBase):
     return {
       Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).pt),
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).cam),
-      Bus.main: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).main),
+      Bus.aux: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).aux),
     }
 
   @staticmethod
@@ -428,10 +428,9 @@ class CarState(CarStateBase):
     return {
        Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [
         # frequency changes too much for the CANParser to figure out
-        ("AWV_03", 1),        # Front Collision Detection (1 Hz when inactive, 50 Hz when active)
         ("Blinkmodi_02", 1),  # From J519 BCM (sent at 1Hz when no lights active, 50Hz when active)
         ("SMLS_01", 1),       # From Stalk Controls
       ], CanBus(CP).pt),
-      Bus.main: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).main),
+      Bus.aux: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).aux),
       Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], CanBus(CP).cam),
     }
