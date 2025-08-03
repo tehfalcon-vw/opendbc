@@ -522,12 +522,14 @@ BO_ 1502 Lenkhilfe_Fehler: 7 XXX
  SG_ Spannung_Kl_30_zu_gro__sp_ : 1|1@1+ (1,0) [0|0] "" XXX
  SG_ Spannung_Kl_30_zu_gro_ : 0|1@1+ (1,0) [0|0] "" XXX
 
-BO_ 976 Lenkhilfe_1: 2 XXX
- SG_ Fehlerspeichereintrag__Lenkhilf : 15|1@1+ (1,0) [0|0] "" XXX
- SG_ Frei_Lenkhilfe_1_2 : 9|6@1+ (1,0) [0|0] "" XXX
- SG_ Fehlerlampe_Lenkhilfe : 8|1@1+ (1,0) [0|0] "" XXX
- SG_ Fehlerstatus_Lastinformation : 7|1@1+ (1,0) [0|0] "" XXX
+BO_ 976 Lenkhilfe_1: 6 XXX
  SG_ Lastinformation : 0|7@1+ (1,0) [0|127] "A" XXX
+ SG_ Fehlerstatus_Lastinformation : 7|1@1+ (1,0) [0|0] "" XXX
+ SG_ Fehlerlampe_Lenkhilfe : 8|1@1+ (1,0) [0|0] "" XXX
+ SG_ Frei_Lenkhilfe_1_2 : 9|6@1+ (1,0) [0|0] "" XXX
+ SG_ Fehlerspeichereintrag__Lenkhilf : 15|1@1+ (1,0) [0|0] "" XXX
+ SG_ Unknown : 35|5@1+ (0.1,0) [0|31] "" XXX
+ SG_ Lenkwinkel_Offset : 40|8@1+ (0.02,0) [0|255] "" XXX
 
 BO_ 1312 Kombi_3: 8 XXX
  SG_ Frei_Kombi_3_2 : 60|4@1+ (1,0) [0|0] "" XXX
