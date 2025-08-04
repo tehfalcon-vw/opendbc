@@ -159,9 +159,10 @@ class CarState(CarStateBase):
     ret.standstill = ret.vEgoRaw == 0
 
     # Update EPS position and state info. For signed values, VW sends the sign in a separate signal.
-    ret.steeringAngleOffsetDeg = main_cp.vl["Lenkhilfe_1"]["Lenkwinkel_Offset"] # no VZ known, only suited for my car right now!!!!!!!!!!!!
-    steeringAngleDeg = pt_cp.vl["Lenkhilfe_3"]["LH3_BLW"] * (1, -1)[int(pt_cp.vl["Lenkhilfe_3"]["LH3_BLWSign"])]
-    ret.steeringAngleDeg = steeringAngleDeg - ret.steeringAngleOffsetDeg
+    #ret.steeringAngleOffsetDeg = main_cp.vl["Lenkhilfe_1"]["Lenkwinkel_Offset"] # no VZ known, only suited for my car right now!!!!!!!!!!!!
+    #steeringAngleDeg = pt_cp.vl["Lenkhilfe_3"]["LH3_BLW"] * (1, -1)[int(pt_cp.vl["Lenkhilfe_3"]["LH3_BLWSign"])]
+    #ret.steeringAngleDeg = steeringAngleDeg - ret.steeringAngleOffsetDeg
+    ret.steeringAngleDeg = pt_cp.vl["Lenkhilfe_3"]["LH3_BLW"] * (1, -1)[int(pt_cp.vl["Lenkhilfe_3"]["LH3_BLWSign"])]
     ret.steeringRateDeg = pt_cp.vl["Lenkwinkel_1"]["Lenkradwinkel_Geschwindigkeit"] * (1, -1)[int(pt_cp.vl["Lenkwinkel_1"]["Lenkradwinkel_Geschwindigkeit_S"])]
     ret.steeringTorque = pt_cp.vl["Lenkhilfe_3"]["LH3_LM"] * (1, -1)[int(pt_cp.vl["Lenkhilfe_3"]["LH3_LMSign"])]
     ret.steeringPressed = abs(ret.steeringTorque) > self.CCP.STEER_DRIVER_ALLOWANCE
