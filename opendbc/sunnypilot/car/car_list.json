@@ -343,6 +343,16 @@
     ],
     "package": "Adaptive Cruise Control (ACC) & Lane Assist"
   },
+  "CUPRA Born 2021": {
+    "platform": "CUPRA_BORN_MK1",
+    "make": "CUPRA",
+    "brand": "volkswagen",
+    "model": "Born",
+    "year": [
+      "2021"
+    ],
+    "package": "Adaptive Cruise Control (ACC) & Lane Assist"
+  },
   "Dodge Durango 2020-21": {
     "platform": "DODGE_DURANGO",
     "make": "Dodge",
