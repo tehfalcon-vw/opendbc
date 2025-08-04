@@ -3825,6 +3825,21 @@
     ],
     "package": "Adaptive Cruise Control (ACC) & Lane Assist"
   },
+  "Volkswagen Passat NMS 2017-22": {
+    "platform": "VOLKSWAGEN_PASSAT_NMS",
+    "make": "Volkswagen",
+    "brand": "volkswagen",
+    "model": "Passat NMS",
+    "year": [
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022"
+    ],
+    "package": "Adaptive Cruise Control (ACC) & Lane Assist"
+  },
   "Volkswagen Polo 2018-23": {
     "platform": "VOLKSWAGEN_POLO_MK6",
     "make": "Volkswagen",
