@@ -73,7 +73,7 @@ class CarController(CarControllerBase):
                                                                          self.CCP.STEER_STEP, CC.latActive, self.CCP.CURVATURE_LIMITS)
 
           min_power = max(self.steering_power_last - self.CCP.STEERING_POWER_STEP, self.CCP.STEERING_POWER_MIN)
-          max_power = np.interp(CS.out.vEgo, [0., 2], [self.CCP.STEERING_POWER_MIN, max(self.steering_power_last + self.CCP.STEERING_POWER_STEP, self.CCP.STEERING_POWER_MAX)])
+          max_power = np.interp(CS.out.vEgo, [0., 1.], [self.CCP.STEERING_POWER_MIN, max(self.steering_power_last + self.CCP.STEERING_POWER_STEP, self.CCP.STEERING_POWER_MAX)])
           target_power = int(np.interp(CS.out.steeringTorque, [self.CCP.STEER_DRIVER_ALLOWANCE, self.CCP.STEER_DRIVER_MAX],
                                                               [self.CCP.STEERING_POWER_MAX, self.CCP.STEERING_POWER_MIN]))
           steering_power = min(max(target_power, min_power), max_power)
