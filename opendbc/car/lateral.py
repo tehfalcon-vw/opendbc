@@ -1,11 +1,11 @@
 import math
 import numpy as np
 from dataclasses import dataclass
-from opendbc.car import structs, rate_limit, DT_CTRL
+from opendbc.car import structs, rate_limit, DT_CTRL, ACCELERATION_DUE_TO_GRAVITY
 from opendbc.car.vehicle_model import VehicleModel
+from typing import Tuple
 
 FRICTION_THRESHOLD = 0.3
-ACCELERATION_DUE_TO_GRAVITY = 9.81  # m/s^2
 
 # ISO 11270
 ISO_LATERAL_ACCEL = 3.0  # m/s^2

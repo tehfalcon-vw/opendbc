@@ -3,7 +3,6 @@ import numpy as np
 from dataclasses import dataclass, field
 from enum import IntFlag, ReprEnum, StrEnum, EnumType, auto
 from dataclasses import replace
-from typing import Tuple
 
 from opendbc.car import structs, uds
 from opendbc.car.can_definitions import CanData
