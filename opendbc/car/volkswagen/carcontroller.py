@@ -34,6 +34,7 @@ class CarController(CarControllerBase):
     self.long_override_counter = 0
     self.long_disabled_counter = 0
     self.gra_acc_counter_last = None
+    self.klr_counter_last = None
     self.eps_timer_soft_disable_alert = False
     self.hca_frame_timer_running = 0
     self.hca_frame_same_torque = 0
@@ -139,8 +140,10 @@ class CarController(CarControllerBase):
       # send capacitive steering wheel touched
       # propably EA is stock activated only for cars equipped with capacitive steering wheel
       # (also stock long does resume from stop as long as hands on is detected additionally to OP resume spam)
-      if self.frame % 6 == 0:
+      klr_send_ready = CS.klr_stock_values["COUNTER"] != self.klr_counter_last
+      if klr_send_ready:
         can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.cam, CC.latActive, CS.klr_stock_values))
+        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.pt, CC.latActive, CS.klr_stock_values)) 
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
