@@ -273,6 +273,7 @@ class CarState(CarStateBase):
 
     # VW Emergency Assist status tracking and mitigation
     self.eps_stock_values = pt_cp.vl["LH_EPS_03"]
+    self.klr_stock_values = pt_cp.vl["KLR_01"] if self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT else {}
     #ret.carFaultedNonCritical = cam_cp.vl["EA_01"]["EA_Funktionsstatus"] in (3, 4, 5, 6) # prepared, not tested
 
     # Update gas, brakes, and gearshift.
