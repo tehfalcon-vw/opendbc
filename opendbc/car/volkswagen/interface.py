@@ -131,9 +131,7 @@ class CarInterface(CarInterfaceBase):
     ret.autoResumeSng = ret.minEnableSpeed == -1
 
     if ret.flags & VolkswagenFlags.MEB:
-      ret.startingState = True # OP long starting state is used
-      ret.useCarBrakeHoldState = True # use start accel until confirmed brake release from car
-      ret.startAccel = 0.85 # ~0.85 m/s^2 for brake release
+      #ret.startAccel = 0.85 # ~0.85 m/s^2 for brake release
       ret.vEgoStarting = 0.5 # minimum ~0.5 m/s acc starting state is neccessary to not fault the car
       ret.vEgoStopping = 0.1
       ret.stopAccel = -1.1 # stock stopped accel
