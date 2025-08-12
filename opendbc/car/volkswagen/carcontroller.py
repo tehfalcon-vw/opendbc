@@ -143,7 +143,8 @@ class CarController(CarControllerBase):
       klr_send_ready = CS.klr_stock_values["COUNTER"] != self.klr_counter_last
       if klr_send_ready:
         can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.cam, CC.latActive, CS.klr_stock_values))
-        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.pt, CC.latActive, CS.klr_stock_values)) 
+        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.pt, CC.latActive, CS.klr_stock_values))
+      self.klr_counter_last = CS.klr_stock_values["COUNTER"]
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
