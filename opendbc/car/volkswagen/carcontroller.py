@@ -140,7 +140,7 @@ class CarController(CarControllerBase):
       # propably EA is stock activated only for cars equipped with capacitive steering wheel
       # (also stock long does resume from stop as long as hands on is detected additionally to OP resume spam)
       if self.frame % 6 == 0:
-        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.ext, CC.latActive, CS.klr_stock_values))
+        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.cam, CC.latActive, CS.klr_stock_values))
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
