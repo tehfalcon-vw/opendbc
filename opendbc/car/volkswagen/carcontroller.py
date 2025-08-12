@@ -135,12 +135,13 @@ class CarController(CarControllerBase):
         can_sends.append(self.CCS.create_eps_update(self.packer_pt, self.CAN.cam, CS.eps_stock_values, ea_simulated_torque))
 
     # Emergency Assist intervention
-    if self.CP.flags & VolkswagenFlags.MEB and self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT:
+    if self.CP.flags & VolkswagenFlags.MEB and CC.latActive and self.CP.flags & VolkswagenFlags.STOCK_KLR_PRESENT:
       # send capacitive steering wheel touched
       # propably EA is stock activated only for cars equipped with capacitive steering wheel
       # (also stock long does resume from stop as long as hands on is detected additionally to OP resume spam)
       if self.frame % 6 == 0:
-        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.ext, CC.latActive, CS.klr_stock_values))
+        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.cam))
+        can_sends.append(mebcan.create_capacitive_wheel_touch(self.packer_pt, self.CAN.pt))
 
     # **** Blinker Controls ************************************************** #
     # "Wechselblinken" has to be allowed in assistance blinker functions in gateway
