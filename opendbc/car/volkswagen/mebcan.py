@@ -120,6 +120,7 @@ def create_capacitive_wheel_touch(packer, bus, lat_active, klr_stock_values):
 
   if lat_active:
     values.update({
+      "COUNTER": (klr_stock_values["COUNTER"] + 1) % 16,
       "KLR_Touchintensitaet_1": 80,
       "KLR_Touchintensitaet_2": 200,
       "KLR_Touchintensitaet_3": 10,
