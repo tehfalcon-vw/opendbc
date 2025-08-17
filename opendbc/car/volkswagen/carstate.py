@@ -247,6 +247,7 @@ class CarState(CarStateBase):
   def update_meb(self, pt_cp, main_cp, cam_cp, ext_cp) -> tuple[structs.CarState, structs.CarStateSP]:
     ret = structs.CarState()
     ret_sp = structs.CarStateSP()
+    
     # Update vehicle speed and acceleration from ABS wheel speeds.
     self.parse_wheel_speeds(ret,
       pt_cp.vl["ESC_51"]["VL_Radgeschw"],
@@ -269,7 +270,10 @@ class CarState(CarStateBase):
     ret.yawRate = pt_cp.vl["ESC_50"]["Yaw_Rate"] * (1, -1)[int(pt_cp.vl["ESC_50"]["Yaw_Rate_Sign"])] * CV.DEG_TO_RAD
     
     # Update gear and/or clutch position data.
-    ret.gearShifter = self.parse_gear_shifter(self.CCP.shifter_values.get(pt_cp.vl["Getriebe_11"]["GE_Fahrstufe"], None))
+    if self.CP.flags & VolkswagenFlags.ALT_GEAR:
+      ret.gearShifter = self.parse_gear_shifter(self.CCP.shifter_values.get(pt_cp.vl["Gateway_73"]["GE_Fahrstufe"], None)) # (candidate for all plattforms)
+    else:
+      ret.gearShifter = self.parse_gear_shifter(self.CCP.shifter_values.get(pt_cp.vl["Getriebe_11"]["GE_Fahrstufe"], None))
     drive_mode = ret.gearShifter == GearShifter.drive
     
     hca_status = self.CCP.hca_status_values.get(pt_cp.vl["QFK_01"]["LatCon_HCA_Status"])
@@ -284,7 +288,11 @@ class CarState(CarStateBase):
     ret.gasPressed   = pt_cp.vl["Motor_54"]["Accelerator_Pressure"] > 0
     ret.brakePressed = bool(pt_cp.vl["Motor_14"]["MO_Fahrer_bremst"]) # includes regen braking by user
     ret.brake        = pt_cp.vl["ESC_51"]["Brake_Pressure"]
-    ret.parkingBrake = pt_cp.vl["Gateway_73"]["EPB_Status"] in (1, 4) # EPB closing or closed
+
+    if self.CP.flags & (VolkswagenFlags.MEB_GEN2 | VolkswagenFlags.MEB_GEN2_2):
+      ret.parkingBrake = pt_cp.vl["ESC_50"]["EPB_Status"] in (1, 4) # EPB closing or closed (candidate for all plattforms)
+    else:
+      ret.parkingBrake = pt_cp.vl["Gateway_73"]["EPB_Status"] in (1, 4) # this signal is not working for newer models
 
     # Update door and trunk/hatch lid open status.
     ret.doorOpen = any([pt_cp.vl["ZV_02"]["ZV_FT_offen"],
@@ -299,8 +307,9 @@ class CarState(CarStateBase):
     # Consume blind-spot monitoring info/warning LED states, if available.
     # Infostufe: BSM LED on, Warnung: BSM LED flashing
     if self.CP.enableBsm:
-      ret.leftBlindspot  = bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Info_Left"]) or bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Warn_Left"])
-      ret.rightBlindspot = bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Info_Right"]) or bool(ext_cp.vl["MEB_Side_Assist_01"]["Blind_Spot_Warn_Right"])
+      bsm_bus = pt_cp if self.CP.flags & (VolkswagenFlags.MEB_GEN2 | VolkswagenFlags.MEB_GEN2_2) else ext_cp
+      ret.leftBlindspot  = bool(bsm_bus.vl["MEB_Side_Assist_01"]["Blind_Spot_Info_Left"]) or bool(bsm_bus.vl["MEB_Side_Assist_01"]["Blind_Spot_Warn_Left"])
+      ret.rightBlindspot = bool(bsm_bus.vl["MEB_Side_Assist_01"]["Blind_Spot_Info_Right"]) or bool(bsm_bus.vl["MEB_Side_Assist_01"]["Blind_Spot_Warn_Right"])
 
     # Consume factory LDW data relevant for factory SWA (Lane Change Assist)
     # and capture it for forwarding to the blind spot radar controller
@@ -326,7 +335,7 @@ class CarState(CarStateBase):
     accFaulted = pt_cp.vl["Motor_51"]["TSK_Status"] in (6, 7)
     ret.accFaulted = self.update_acc_fault(accFaulted, parking_brake=ret.parkingBrake, drive_mode=drive_mode)
 
-    self.esp_hold_confirmation = bool(pt_cp.vl["VMM_02"]["ESP_Hold"])
+    self.esp_hold_confirmation = bool(pt_cp.vl["VMM_02"]["ESP_Hold"]) # observe for newer gen
     ret.cruiseState.standstill = self.CP.pcmCruise and self.esp_hold_confirmation
 
     # Update ACC setpoint. When the setpoint is zero or there's an error, the
@@ -354,7 +363,13 @@ class CarState(CarStateBase):
     # turn signal cause
     ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_stalk(240, pt_cp.vl["SMLS_01"]["BH_Blinker_li"],
                                                                             pt_cp.vl["SMLS_01"]["BH_Blinker_re"])
-    ret.buttonEvents = self.create_button_events(pt_cp, self.CCP.BUTTONS)
+
+    # detect button configuration
+    # for latched main cruise button (or no main button present), there is probably a physical cancel button
+    # existing main cruise push button is probably used as cancel button if present
+    main_cruise_latching = not bool(pt_cp.vl["GRA_ACC_01"]["GRA_Typ_Hauptschalter"])
+    buttons = self.CCP.BUTTONS_ALT if main_cruise_latching else self.CCP.BUTTONS
+    ret.buttonEvents = self.create_button_events(pt_cp, buttons)
     
     self.gra_stock_values = pt_cp.vl["GRA_ACC_01"]
     

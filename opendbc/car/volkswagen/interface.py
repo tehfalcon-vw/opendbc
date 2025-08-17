@@ -42,6 +42,9 @@ class CarInterface(CarInterfaceBase):
     elif ret.flags & VolkswagenFlags.MEB:
       # Set global MEB parameters
       safety_configs = [get_safety_config(structs.CarParams.SafetyModel.volkswagenMeb)]
+      if ret.flags & (VolkswagenFlags.MEB_GEN2 | VolkswagenFlags.MEB_GEN2_2):
+        safety_configs[0].safetyParam |= VolkswagenSafetyFlags.ALT_CRC_VARIANT_1.value
+      
       ret.enableBsm = 0x24C in fingerprint[0]  # MEB_Side_Assist_01
       ret.transmissionType = TransmissionType.direct
       #ret.steerControlType = structs.CarParams.SteerControlType.angle
@@ -64,6 +67,9 @@ class CarInterface(CarInterfaceBase):
 
       if all(msg in fingerprint[1] for msg in (0x462, 0x463, 0x464)):  # PSD_04, PSD_05, PSD_06
         ret.flags |= VolkswagenFlags.STOCK_PSD_PRESENT.value
+
+      if 0x3DC in fingerprint[0]:  # Gatway_73
+       ret.flags |= VolkswagenFlags.ALT_GEAR.value
 
     else:
       # Set global MQB parameters

@@ -120,17 +120,27 @@ class CarControllerParams:
         0.195,  # Max curvature for steering command, m^-1
       )
 
-      self.shifter_values    = can_define.dv["Getriebe_11"]["GE_Fahrstufe"]
+      if CP.flags & VolkswagenFlags.ALT_GEAR:
+        self.shifter_values = can_define.dv["Gateway_73"]["GE_Fahrstufe"]
+      else:
+        self.shifter_values = can_define.dv["Getriebe_11"]["GE_Fahrstufe"]
+      
       self.hca_status_values = can_define.dv["QFK_01"]["LatCon_HCA_Status"]
 
-      self.BUTTONS = [
+      BASE_BUTTONS = [
         Button(structs.CarState.ButtonEvent.Type.setCruise, "GRA_ACC_01", "GRA_Tip_Setzen", [1]),
         Button(structs.CarState.ButtonEvent.Type.resumeCruise, "GRA_ACC_01", "GRA_Tip_Wiederaufnahme", [1]),
         Button(structs.CarState.ButtonEvent.Type.accelCruise, "GRA_ACC_01", "GRA_Tip_Hoch", [1]),
         Button(structs.CarState.ButtonEvent.Type.decelCruise, "GRA_ACC_01", "GRA_Tip_Runter", [1]),
-        #Button(structs.CarState.ButtonEvent.Type.cancel, "GRA_ACC_01", "GRA_Abbrechen", [1]), # there is no physical cancel button
-        Button(structs.CarState.ButtonEvent.Type.cancel, "GRA_ACC_01", "GRA_Hauptschalter", [1]), # main button cancels ACC operation when ACC active
         Button(structs.CarState.ButtonEvent.Type.gapAdjustCruise, "GRA_ACC_01", "GRA_Verstellung_Zeitluecke", [3]),
+      ]
+
+      self.BUTTONS = BASE_BUTTONS + [
+        Button(structs.CarState.ButtonEvent.Type.cancel, "GRA_ACC_01", "GRA_Hauptschalter", [1]), # main button cancels ACC operation when ACC active
+      ]
+
+      self.BUTTONS_ALT = BASE_BUTTONS + [
+        Button(structs.CarState.ButtonEvent.Type.cancel, "GRA_ACC_01", "GRA_Abbrechen", [1]), # there is a physical cancel button
       ]
 
       self.LDW_MESSAGES = {
@@ -202,6 +212,7 @@ class WMI(StrEnum):
 
 class VolkswagenSafetyFlags(IntFlag):
   LONG_CONTROL = 1
+  ALT_CRC_VARIANT_1 = 2
 
 
 class VolkswagenFlags(IntFlag):
@@ -210,10 +221,14 @@ class VolkswagenFlags(IntFlag):
   KOMBI_PRESENT = 4
   STOCK_KLR_PRESENT = 8
   STOCK_PSD_PRESENT = 16
+  ALT_GEAR = 32
 
   # Static flags
   PQ = 2
-  MEB = 4
+  MEB = 64
+  MEB_GEN2 = 128
+  MEB_GEN2_2 = 256
+  
 
 
 @dataclass
@@ -228,13 +243,15 @@ class VolkswagenMQBPlatformConfig(PlatformConfig):
 @dataclass
 class VolkswagenMEBPlatformConfig(PlatformConfig):
   dbc_dict: DbcDict = field(default_factory=lambda: {Bus.pt: 'vw_meb', Bus.radar: 'vw_meb'})
-  # Volkswagen uses the VIN WMI and chassis code to match in the absence of the comma power
-  # on camera-integrated cars, as we lose too many ECUs to reliably identify the vehicle
   chassis_codes: set[str] = field(default_factory=set)
   wmis: set[WMI] = field(default_factory=set)
 
   def init(self):
     self.flags |= VolkswagenFlags.MEB
+    if self.flags & VolkswagenFlags.MEB_GEN2:
+      self.dbc_dict = {Bus.pt: 'vw_meb_2024', Bus.radar: 'vw_meb_2024'}
+    elif self.flags & VolkswagenFlags.MEB_GEN2_2:
+      self.dbc_dict = {Bus.pt: 'vw_meb_2024_2', Bus.radar: 'vw_meb_2024_2'}
 
 
 @dataclass
@@ -483,13 +500,25 @@ class CAR(Platforms):
     wmis={WMI.SEAT},
   )
   CUPRA_BORN_MK1 = VolkswagenMEBPlatformConfig(
-    [
-      VWCarDocs("CUPRA Born 2021"),
-    ],
+    [VWCarDocs("CUPRA Born 2021"),],
     # for CUPRA BORN 77kWh 170 kW, tireStiffnessFactor and centerToFrontRatio are approximations
     VolkswagenCarSpecs(mass=1950, wheelbase=2.766, steerRatio=15.9, centerToFrontRatio=0.496, tireStiffnessFactor=1.0),
-    chassis_codes={"K1"},
-    wmis={WMI.SEAT},
+    chassis_codes={"K1", "E1", "E2"}, # cupra born 2023, ID.3 older gen, ID.4 2021
+    wmis={WMI.SEAT, WMI.VOLKSWAGEN_USA_SUV, WMI.VOLKSWAGEN_EUROPE_CAR},
+  )
+  CUPRA_BORN_GEN2 = VolkswagenMEBPlatformConfig(
+    [VWCarDocs("CUPRA Born Gen 2")],
+    CUPRA_BORN_MK1.specs,
+    chassis_codes={"E8", "NY"}, # ID.4 newer gen and 2024, skoda enyaq
+    wmis={WMI.SEAT, WMI.VOLKSWAGEN_USA_SUV, WMI.VOLKSWAGEN_EUROPE_CAR, WMI.SKODA},
+    flags=VolkswagenFlags.MEB_GEN2,
+  )
+  CUPRA_BORN_GEN2_2 = VolkswagenMEBPlatformConfig(
+    [VWCarDocs("CUPRA Born Gen 2.2")],
+    CUPRA_BORN_MK1.specs,
+    chassis_codes={"E8", "E1"}, # ID.4 newer gen crc subvariant, ID.3 Pro 2025
+    wmis={WMI.VOLKSWAGEN_USA_SUV, WMI.VOLKSWAGEN_EUROPE_CAR},
+    flags=VolkswagenFlags.MEB_GEN2_2,
   )
   SKODA_FABIA_MK4 = VolkswagenMQBPlatformConfig(
     [VWCarDocs("Škoda Fabia 2022-23", footnotes=[Footnote.VW_MQB_A0])],
