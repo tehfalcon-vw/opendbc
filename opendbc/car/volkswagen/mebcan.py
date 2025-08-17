@@ -172,7 +172,7 @@ def acc_hold_type(main_switch_on, acc_faulted, long_active, starting, stopping, 
 
 
 def create_acc_accel_control(packer, bus, acc_type, acc_enabled, upper_jerk, lower_jerk, upper_control_limit, lower_control_limit,
-                             accel, acc_control, acc_hold_type, stopping, starting, speed, override, travel_assist_available):
+                             accel, acc_control, acc_hold_type, stopping, starting, esp_hold, speed, override, travel_assist_available):
   # active longitudinal control disables one pedal driving (regen mode) while using overriding mechnism
   commands = []
 
@@ -194,7 +194,7 @@ def create_acc_accel_control(packer, bus, acc_type, acc_enabled, upper_jerk, low
     "ACC_neg_Sollbeschl_Grad_02": lower_jerk if acc_control in (ACC_CTRL_ACTIVE, ACC_CTRL_OVERRIDE) else 0,
     "ACC_pos_Sollbeschl_Grad_02": upper_jerk if acc_control in (ACC_CTRL_ACTIVE, ACC_CTRL_OVERRIDE) else 0,
     "ACC_Anfahren":               starting,
-    "ACC_Anhalten":               stopping,
+    "ACC_Anhalten":               stopping if not esp_hold else 0, # as long as we are actually stopping, newer models error if too long
     "ACC_Anhalteweg":             20.46,
     "ACC_Anforderung_HMS":        acc_hold_type,
     "ACC_AKTIV_regelt":           1 if acc_control == ACC_CTRL_ACTIVE else 0,
