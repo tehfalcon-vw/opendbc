@@ -2085,6 +2085,24 @@ BO_ 441800082 MEB_Camera_12: 8 XXX
 
 BO_ 452984911 MEB_Camera_13: 8 XXX
 
+BO_ 316495058 Battery_Heating_Status: 8 XXX
+ SG_ Battery_Heating_Active : 38|1@1+ (1,0) [0|1] "" XXX
+ SG_ Heating_Request : 45|3@1+ (1,0) [0|7] "" XXX
+ SG_ Cooling_Request : 42|3@1+ (1,0) [0|7] "" XXX
+ SG_ Power_Batt_Heating : 48|8@1+ (1,0) [0|255] "W" XXX
+ SG_ Power_Batt_Heating_Req : 56|8@1+ (1,0) [0|255] "W" XXX
+
+BO_ 441800114 Charging_Optimization: 8 XXX
+ SG_ Temperature_Status_Charge : 15|3@1+ (1,0) [0|7] "" XXX
+
+BO_ 316495056 Charging_Dynamics: 8 XXX
+ SG_ Max_Charge_Power : 51|13@1+ (0.1,0) [0|819.1] "kW" XXX
+ SG_ Max_Charge_Current : 25|13@1+ (0.2,0) [0|1638.2] "A" XXX
+
+BO_ 380196006 Battery_Temperatures: 8 XXX
+ SG_ Battery_Max_Temp : 24|8@1+ (0.5,-40) [-40|87.5] "degC" XXX
+ SG_ Battery_Min_Temp : 32|8@1+ (0.5,-40) [-40|87.5] "degC" XXX
+
 CM_ BO_ 184 "Motorsteuergerät";
 CM_ BO_ 192 "Motorsteuergerät";
 CM_ BO_ 317 "Lenkungssteuergerät";
@@ -3395,6 +3413,7 @@ VAL_ 316495015 VZE_Zeichen_03_Kamera 0 "nicht_erkannt" 1 "erkannt";
 VAL_ 316495015 VZE_Zeichen_03_Karte 0 "inaktiv" 1 "aktiv";
 VAL_ 316495015 VZE_Zeichen_03_Gesetz 0 "nicht_erkannt" 1 "erkannt";
 VAL_ 316495015 VZE_Gong 0 "Gong_deaktiv" 1 "Gong_aktiv";
+VAL_ 441800114 Temperature_Status_Charge 0 "init" 1 "temp under optimal" 2 "temp optimal" 3 "temp over optimal" 7 "fault";
 
 
 
