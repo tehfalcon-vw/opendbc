@@ -45,6 +45,21 @@
     ],
     "package": "All"
   },
+  "Audi A3 2009-2013": {
+    "platform": "VOLKSWAGEN_JETTA_MK6",
+    "make": "Audi",
+    "brand": "volkswagen",
+    "model": "A3",
+    "year": [
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019"
+    ],
+    "package": "Adaptive Cruise Control (ACC) & Lane Assist"
+  },
   "Audi A3 2014-19": {
     "platform": "AUDI_A3_MK3",
     "make": "Audi",
