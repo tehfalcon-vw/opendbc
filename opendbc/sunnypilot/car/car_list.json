@@ -79,7 +79,22 @@
       "2017",
       "2018"
     ],
-    "package": "Adaptive Cruise Control (ACC) & Lane Assist"
+    "package": "Adaptive Cruise Control (ACC) & Lane Assist",
+  },
+  "Audi A3 2008-13": {
+    "platform": "VOLKSWAGEN_PASSAT_NMS",
+    "make": "Audi",
+    "brand": "volkswagen",
+    "model": "A3",
+    "year": [
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019"
+    ],
+    "package": "Adaptive Cruise Control (ACC)"
   },
   "Audi Q2 2018": {
     "platform": "AUDI_Q2_MK1",
