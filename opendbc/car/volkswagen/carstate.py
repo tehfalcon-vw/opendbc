@@ -221,8 +221,8 @@ class CarState(CarStateBase, MadsCarState):
 
     # Update ACC radar status.
     self.acc_type = 0
-    ret.cruiseState.available = bool(pt_cp.vl["Motor_5"]["GRA_Hauptschalter"])
-    ret.cruiseState.enabled = pt_cp.vl["Motor_2"]["MO2_Sta_GRA"] in (1, 2)
+    ret.cruiseState.available = True
+    ret.cruiseState.enabled = True
 
     # Update ACC setpoint. When the setpoint reads as 255, the driver has not
     # yet established an ACC setpoint, so treat it as zero.
