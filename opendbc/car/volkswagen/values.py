@@ -36,7 +36,7 @@ class CanBus(CanBusBase):
     # NetworkLocation.fwdCamera: radar-camera object fusion CAN
     # NetworkLocation.gateway: powertrain CAN
     return self.offset + 1
-
+    
   @property
   def main(self) -> int:
     return self.offset + 1
@@ -115,7 +115,15 @@ class CarControllerParams:
       self.STEERING_POWER_MAX      = 50    # HCA_03 maximum steering power, percentage
       self.STEERING_POWER_MIN      = 4     # HCA_03 minimum steering power, percentage
       self.STEERING_POWER_STEP     = 2     # HCA_03 steering power counter steps
-
+      
+      self.CURVATURE_PID: structs.CarParams.LateralPIDTuning = structs.CarParams.LateralPIDTuning(
+        kpBP = [10., 40.],
+        kiBP = [10., 40.],
+        kf   = 1.,
+        kpV  = [0., 1.45],
+        kiV  = [0., 0.12],
+      )
+      
       self.CURVATURE_LIMITS: CurvatureSteeringLimits = CurvatureSteeringLimits(
         0.195,  # Max curvature for steering command, m^-1
       )
@@ -124,7 +132,7 @@ class CarControllerParams:
         self.shifter_values = can_define.dv["Gateway_73"]["GE_Fahrstufe"]
       else:
         self.shifter_values = can_define.dv["Getriebe_11"]["GE_Fahrstufe"]
-
+      
       self.hca_status_values = can_define.dv["QFK_01"]["LatCon_HCA_Status"]
 
       BASE_BUTTONS = [
@@ -227,7 +235,7 @@ class VolkswagenFlags(IntFlag):
   PQ = 2
   MEB = 64
   MEB_GEN2 = 128
-
+  
 
 
 @dataclass
@@ -399,7 +407,7 @@ class CAR(Platforms):
   )
   VOLKSWAGEN_PASSAT_NMS = VolkswagenPQPlatformConfig(
     [VWCarDocs("Volkswagen Passat NMS 2017-22")],
-    VolkswagenCarSpecs(mass=1518, wheelbase=2.65, minSteerSpeed=1 * CV.KPH_TO_MS, minEnableSpeed=0 * CV.KPH_TO_MS),
+    VolkswagenCarSpecs(mass=1503, wheelbase=2.80, minSteerSpeed=50 * CV.KPH_TO_MS, minEnableSpeed=20 * CV.KPH_TO_MS),
     chassis_codes={"A3"},
     wmis={WMI.VOLKSWAGEN_USA_CAR},
   )
@@ -499,7 +507,7 @@ class CAR(Platforms):
   CUPRA_BORN_MK1 = VolkswagenMEBPlatformConfig(
     [VWCarDocs("CUPRA Born 2021"),],
     # for CUPRA BORN 77kWh 170 kW, tireStiffnessFactor and centerToFrontRatio are approximations
-    VolkswagenCarSpecs(mass=1950, wheelbase=2.766, steerRatio=15.9, centerToFrontRatio=0.496, tireStiffnessFactor=1.0),
+    VolkswagenCarSpecs(mass=1950, wheelbase=2.766),
     chassis_codes={"K1", "E1", "E2"}, # cupra born 2023, ID.3 older gen, ID.4 2021
     wmis={WMI.SEAT, WMI.VOLKSWAGEN_USA_SUV, WMI.VOLKSWAGEN_EUROPE_CAR},
   )

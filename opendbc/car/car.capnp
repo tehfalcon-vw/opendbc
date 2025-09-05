@@ -373,6 +373,7 @@ struct CarControl {
   currentCurvature @17 :Float32;  # From vehicle model
   curvatureControllerActive @18: Bool;
   currentCurvatureNoRoll @19 :Float32;  # From vehicle model without roll
+  steerLimited @20: Bool;
 
   cruiseControl @4 :CruiseControl;
   hudControl @5 :HUDControl;
@@ -531,9 +532,6 @@ struct CarParams {
   stoppingDecelRate @52 :Float32; # m/s^2/s while trying to stop
   startAccel @32 :Float32; # Required acceleration to get car moving
   startingState @70 :Bool; # Does this car make use of special starting state
-
-  useCarSteerCurvature @78 :Bool; # use EPS steering curvature interpretation as correction
-  useCarBrakeHoldState @79 :Bool; # use car brake hold confirmation for OP startAccel usage
 
   steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
   longitudinalActuatorDelay @58 :Float32; # Gas/Brake actuator delay in seconds
