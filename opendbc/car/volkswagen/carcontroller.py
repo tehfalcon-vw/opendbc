@@ -53,6 +53,8 @@ class CarController(CarControllerBase):
     actuators = CC.actuators
     hud_control = CC.hudControl
     can_sends = []
+    
+    CS.out.force_rhd_for_bsm = CC.forceRHDForBSM
 
     # **** Steering Controls ************************************************ #
 

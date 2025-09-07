@@ -374,6 +374,7 @@ struct CarControl {
   curvatureControllerActive @18: Bool;
   rollCompensation @19 :Float32;
   steerLimited @20: Bool;
+  forceRHDForBSM @21: Bool;
 
   cruiseControl @4 :CruiseControl;
   hudControl @5 :HUDControl;
