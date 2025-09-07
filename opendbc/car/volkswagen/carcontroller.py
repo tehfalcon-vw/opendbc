@@ -47,7 +47,11 @@ class CarController(CarControllerBase):
     self.gra_down = False
     self.speed_limit_last = 0
     self.speed_limit_changed_timer = 0
-    self.LateralController = LatControlCurvature(self.CCP.CURVATURE_PID, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, 1 / (DT_CTRL * self.CCP.STEER_STEP))
+    self.LateralController = (
+      LatControlCurvature(self.CCP.CURVATURE_PID, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, 1 / (DT_CTRL * self.CCP.STEER_STEP))
+      if (CP.flags & VolkswagenFlags.MEB)
+      else None
+    )
 
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
