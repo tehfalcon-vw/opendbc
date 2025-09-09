@@ -3952,14 +3952,12 @@
     ],
     "package": "Adaptive Cruise Control (ACC) & Lane Assist"
   },
-  "Volkswagen Passat GTE 2015-22": {
-    "platform": "VOLKSWAGEN_PASSAT_MK8",
+  "Volkswagen Passat NMS": {
+    "platform": "VOLKSWAGEN_PASSAT_NMS",
     "make": "Volkswagen",
     "brand": "volkswagen",
-    "model": "Passat GTE",
+    "model": "Passat NMS",
     "year": [
-      "2015",
-      "2016",
       "2017",
       "2018",
       "2019",
