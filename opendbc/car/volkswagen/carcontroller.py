@@ -2,7 +2,6 @@ import numpy as np
 
 from opendbc.can import CANPacker
 from opendbc.car import Bus, DT_CTRL, structs
-from opendbc.car.vehicle_model import VehicleModel
 from opendbc.car.lateral import apply_driver_steer_torque_limits, apply_std_curvature_limits
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.interfaces import CarControllerBase
@@ -48,13 +47,18 @@ class CarController(CarControllerBase):
     self.gra_down = False
     self.speed_limit_last = 0
     self.speed_limit_changed_timer = 0
-    self.VM = VehicleModel(CP)
-    self.LateralController = LatControlCurvature(self.CCP.CURVATURE_PID, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, 1 / (DT_CTRL * self.CCP.STEER_STEP))
+    self.LateralController = (
+      LatControlCurvature(self.CCP.CURVATURE_PID, self.CCP.CURVATURE_LIMITS.CURVATURE_MAX, 1 / (DT_CTRL * self.CCP.STEER_STEP))
+      if (CP.flags & VolkswagenFlags.MEB)
+      else None
+    )
 
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
     hud_control = CC.hudControl
     can_sends = []
+    
+    CS.force_rhd_for_bsm = CC.forceRHDForBSM
 
     # **** Steering Controls ************************************************ #
 
@@ -68,8 +72,8 @@ class CarController(CarControllerBase):
         if CC.latActive:
           hca_enabled = True
           if CC.curvatureControllerActive: # PID + (car curv - VM no roll)
-            apply_curvature = self.LateralController.update(CS.out, self.VM, CC.rollDEPRECATED, actuators.curvature, CC.steerLimited)
-            apply_curvature = apply_curvature + (CS.out.steeringCurvature - CC.currentCurvatureNoRoll)
+            apply_curvature = self.LateralController.update(CS.out, CC, actuators.curvature)
+            apply_curvature = apply_curvature + (CS.out.steeringCurvature - (CC.currentCurvature - CC.rollCompensation))
           else: # car curv - VM with roll
             apply_curvature = actuators.curvature + (CS.out.steeringCurvature - CC.currentCurvature)
           apply_curvature = apply_std_curvature_limits(apply_curvature, self.apply_curvature_last, CS.out.vEgoRaw, CS.out.steeringCurvature,
@@ -182,7 +186,7 @@ class CarController(CarControllerBase):
           # Logic to prevent car error with EPB:
           #   * send a few frames of HMS RAMP RELEASE command at the very begin of long override and right at the end of active long control -> clean exit of ACC car controls
           #   * (1 frame of HMS RAMP RELEASE is enough, but lower the possibility of panda safety blocking it)
-          starting = actuators.longControlState == LongCtrlState.starting
+          starting = actuators.longControlState == LongCtrlState.starting if self.long_override_counter == 0 else False # openpilot sets starting state after overriding ...
           accel = float(np.clip(actuators.accel, self.CCP.ACCEL_MIN, self.CCP.ACCEL_MAX) if CC.enabled else 0)
 
           long_override = CC.cruiseControl.override or CS.out.gasPressed
@@ -201,11 +205,11 @@ class CarController(CarControllerBase):
                                                                                                                                 self.long_dy_down_last,
                                                                                                                                 DT_CTRL * self.CCP.ACC_CONTROL_STEP,
                                                                                                                                 critical_state)
-          
+
           acc_control = self.CCS.acc_control_value(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled, long_override)          
           acc_hold_type = self.CCS.acc_hold_type(CS.out.cruiseState.available, CS.out.accFaulted, CC.enabled, starting, stopping,
                                                  CS.esp_hold_confirmation, long_override, long_override_begin, long_disabling)
-          can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, self.CAN.pt, CS.acc_type, CC.enabled,
+          can_sends.extend(self.CCS.create_acc_accel_control(self.packer_pt, self.CAN.pt, self.CP, CS.acc_type, CC.enabled,
                                                              self.long_jerk_up_last, self.long_jerk_down_last, upper_control_limit, lower_control_limit,
                                                              accel, acc_control, acc_hold_type, stopping, starting, CS.esp_hold_confirmation,
                                                              CS.out.vEgoRaw * CV.MS_TO_KPH, long_override, CS.travel_assist_available))
